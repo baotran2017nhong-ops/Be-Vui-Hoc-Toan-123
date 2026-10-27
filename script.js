@@ -605,8 +605,7 @@ function renderListenGame() {
       </div>
       <div class="narration-box" style="flex-direction:column; gap:8px;">
         <div class="big-number" aria-label="Số cần tìm">${problem.number}</div>
-        <div style="font-size:1.1rem;">🔊 Nghe số rồi tìm nhóm hình đúng nhé!</div>
-        <button type="button" class="small-btn" id="replayVoiceBtn">🔊 Nghe lại số</button>
+        <div style="font-size:1.1rem;">👀 Nhìn số rồi chọn nhóm hình có số lượng tương ứng nhé!</div>
       </div>
       <div class="option-grid quantity-picture-options" style="margin-top:18px;">
         ${problem.options.map((count, index) => `
@@ -620,7 +619,7 @@ function renderListenGame() {
   document.getElementById('gameContent').innerHTML = html;
   const sayNumber = () => {
     if (!state.soundEnabled || !('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
+    
 
   };
   document.getElementById('replayVoiceBtn')?.addEventListener('click', sayNumber);
