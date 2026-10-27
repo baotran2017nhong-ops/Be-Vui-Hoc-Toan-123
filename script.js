@@ -13,8 +13,7 @@ const state = {
   score: 0,
   problem: null,
   hasAnswered: false,
-  soundEnabled: true,
-  voiceEnabled: true
+  soundEnabled: true
 };
 
 const rangeForMode = {
@@ -58,35 +57,6 @@ const numberWords = {
   20: 'hai mươi'
 };
 
-
-let selectedVietnameseVoice = null;
-function chooseVietnameseGirlVoice() {
-  if (!('speechSynthesis' in window)) return null;
-  const voices = window.speechSynthesis.getVoices() || [];
-  const viVoices = voices.filter(v => /^vi(-|_)/i.test(v.lang) || /vietnam/i.test(v.lang));
-  const femaleHints = /female|woman|girl|mai|linh|an|hoai|google.*vi|vietnamese.*female/i;
-  selectedVietnameseVoice =
-    viVoices.find(v => femaleHints.test(v.name)) ||
-    viVoices.find(v => /vi-VN/i.test(v.lang)) ||
-    viVoices[0] || null;
-  return selectedVietnameseVoice;
-}
-if ('speechSynthesis' in window) {
-  chooseVietnameseGirlVoice();
-  window.speechSynthesis.addEventListener?.('voiceschanged', chooseVietnameseGirlVoice);
-}
-function speakVietnamese(text) {
-  if (!state.voiceEnabled || !('speechSynthesis' in window) || !text) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(String(text));
-  utterance.lang = 'vi-VN';
-  utterance.rate = 0.82;
-  utterance.pitch = 1.18;
-  utterance.volume = 1;
-  const voice = chooseVietnameseGirlVoice();
-  if (voice) utterance.voice = voice;
-  window.speechSynthesis.speak(utterance);
-}
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -178,7 +148,6 @@ function renderGameNav() {
       state.hasAnswered = false;
       state.problem = null;
       render();
-      speakVietnamese(getGameTitle());
     };
   });
 }
@@ -652,7 +621,7 @@ function renderListenGame() {
   const sayNumber = () => {
     if (!state.soundEnabled || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
-    speakVietnamese(numberWords[problem.number] || String(problem.number));
+
   };
   document.getElementById('replayVoiceBtn')?.addEventListener('click', sayNumber);
   sayNumber();
@@ -767,12 +736,10 @@ function handleAnswer(isCorrect, selected, problem) {
   if (isCorrect) {
     awardPoints(10);
     addResultBanner('Tuyệt vời! Đáp án đúng! 👏', true);
-    speakVietnamese('Giỏi lắm! Con trả lời đúng rồi!');
     playCorrectSound();
 
   } else {
     addResultBanner(`Mình thử lại nhé! 🌟`, false);
-    speakVietnamese('Chưa đúng rồi. Con thử lại nhé!');
     playWrongSound();
 
   }
@@ -818,14 +785,6 @@ function render() {
 
 document.addEventListener('DOMContentLoaded', () => {
   render();
-  const voiceToggle = document.getElementById('voiceToggle');
-  if (voiceToggle) voiceToggle.addEventListener('click', () => {
-    state.voiceEnabled = !state.voiceEnabled;
-    voiceToggle.setAttribute('aria-pressed', String(state.voiceEnabled));
-    voiceToggle.textContent = state.voiceEnabled ? '🔊 Giọng đọc' : '🔇 Tắt giọng';
-    if (!state.voiceEnabled && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-    if (state.voiceEnabled) speakVietnamese('Xin chào các bé! Cùng chơi và học toán nhé!');
-  });
 });
 
 // Âm thanh nhỏ khi trẻ thao tác với trò chơi. Âm đúng/sai được phát riêng trong handleAnswer.
