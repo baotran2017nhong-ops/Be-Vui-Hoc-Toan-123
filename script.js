@@ -1,9 +1,9 @@
 const GAME_DEFINITIONS = [
   { id: 'counting', label: 'Đếm số' },
-  { id: 'clock', label: 'Đồng hồ' },
-  { id: 'position', label: 'Vị trí' },
+  { id: 'clock', label: 'Xem giờ' },
+  { id: 'position', label: 'Kéo thả' },
   { id: 'missing', label: 'Thiếu số' },
-  { id: 'listen', label: 'Nghe số' },
+  { id: 'listen', label: 'Đọc số' },
   { id: 'quantity', label: 'Số lượng' }
 ];
 
@@ -12,7 +12,8 @@ const state = {
   mode: 'easy',
   score: 0,
   problem: null,
-  hasAnswered: false
+  hasAnswered: false,
+  soundEnabled: true
 };
 
 const rangeForMode = {
@@ -21,8 +22,40 @@ const rangeForMode = {
 };
 
 const icons = ['🍎', '🍉', '🍋', '🍓', '🍇', '🍒', '🍊', '🍏', '🥕', '🌼', '🐝', '🐶', '🐱', '🐰', '🦊', '🐸', '🍀', '🌞', '⚽', '🎈', '🧁', '🍪'];
+const positionSlots = [
+  { key: 'trên', label: 'Trên' },
+  { key: 'dưới', label: 'Dưới' },
+  { key: 'trong', label: 'Trong' },
+  { key: 'ngoài', label: 'Ngoài' },
+  { key: 'trái', label: 'Trái' },
+  { key: 'phải', label: 'Phải' },
+  { key: 'trước', label: 'Trước' },
+  { key: 'sau', label: 'Sau' }
+];
 
-const speechSupported = 'speechSynthesis' in window;
+const numberWords = {
+  0: 'không',
+  1: 'một',
+  2: 'hai',
+  3: 'ba',
+  4: 'bốn',
+  5: 'năm',
+  6: 'sáu',
+  7: 'bảy',
+  8: 'tám',
+  9: 'chín',
+  10: 'mười',
+  11: 'mười một',
+  12: 'mười hai',
+  13: 'mười ba',
+  14: 'mười bốn',
+  15: 'mười năm',
+  16: 'mười sáu',
+  17: 'mười bảy',
+  18: 'mười tám',
+  19: 'mười chín',
+  20: 'hai mươi'
+};
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -41,22 +74,29 @@ function rangeForCurrentMode() {
   return rangeForMode[state.mode];
 }
 
+function updateScore() {
+  const scoreValue = document.getElementById('scoreValue');
+  if (scoreValue) scoreValue.textContent = state.score;
+}
+
 function speak(text) {
-  if (!speechSupported) return;
+  if (!state.soundEnabled || !('speechSynthesis' in window)) return;
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'vi-VN';
   utter.rate = 0.96;
-  speechSynthesis.cancel();
-  speechSynthesis.speak(utter);
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
 }
 
-function updateScore() {
-  const scoreValue = document.getElementById('scoreValue');
-  scoreValue.textContent = state.score;
+function speakNumber(number) {
+  const spokenText = `Số ${number}. ${numberWords[number] || number}.`;
+  speak(spokenText);
 }
 
 function renderGameNav() {
   const nav = document.getElementById('gameNav');
+  if (!nav) return;
+
   nav.innerHTML = GAME_DEFINITIONS.map(
     (game) => `
       <button type="button" data-game="${game.id}" class="${state.currentGame === game.id ? 'active' : ''}">
@@ -66,35 +106,35 @@ function renderGameNav() {
   ).join('');
 
   nav.querySelectorAll('button').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       state.currentGame = button.dataset.game;
       state.hasAnswered = false;
       state.problem = null;
       render();
-    });
+    };
   });
 }
 
 function renderDifficultyButtons() {
   document.querySelectorAll('.mode-btn').forEach((button) => {
     button.classList.toggle('active', button.dataset.mode === state.mode);
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       state.mode = button.dataset.mode;
       state.problem = null;
       state.hasAnswered = false;
       render();
-    });
+    };
   });
 }
 
 function getGameTitle() {
   const map = {
     counting: 'Đếm đồ vật và phép toán',
-    clock: 'Đồng hồ và thời gian',
-    position: 'Vị trí, trên dưới và trái phải',
+    clock: 'Xem giờ',
+    position: 'Kéo thả vị trí',
     missing: 'Số còn thiếu',
-    listen: 'Nghe và chọn số',
-    quantity: 'Chọn đúng số lượng'
+    listen: 'Đọc số',
+    quantity: 'Số lượng'
   };
   return map[state.currentGame] || 'Trò chơi';
 }
@@ -113,6 +153,12 @@ function awardPoints(amount) {
   updateScore();
 }
 
+function reRenderCurrentGame() {
+  state.problem = null;
+  state.hasAnswered = false;
+  render();
+}
+
 function generateCountProblem() {
   const { min, max } = rangeForCurrentMode();
   const kindRoll = Math.random();
@@ -122,7 +168,7 @@ function generateCountProblem() {
     const count = randomInt(min, max);
     const choices = shuffle([
       count,
-      count + (count < max ? 1 : -1),
+      count < max ? count + 1 : count - 1,
       Math.max(min, count - 2),
       Math.min(max, count + 2)
     ]).filter((value, idx, array) => array.indexOf(value) === idx);
@@ -141,12 +187,19 @@ function generateCountProblem() {
     const a = randomInt(min, Math.min(max, 9));
     const b = randomInt(0, Math.max(0, max - a));
     const total = a + b;
+    const wrongs = shuffle([
+      total,
+      Math.max(min, total - 2),
+      total + 2,
+      Math.max(min, total - 1)
+    ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4);
+
     return {
       type: 'sum',
       question: 'Tính tổng số lượng',
       prompt: `${a} + ${b} = ?`,
       answer: total,
-      choices: shuffle([total, Math.max(min, total - 2), total + 2, Math.max(min, total - 1)]).filter((v, idx, arr) => arr.indexOf(v) === idx).slice(0, 4)
+      choices: wrongs
     };
   }
 
@@ -214,15 +267,12 @@ function renderCountingGame() {
   } else {
     html += `
       <div class="object-row" style="margin: 20px 0;">
-        <div class="object-item small">${icons[0]}</div>
-        <div class="object-item small">${icons[1]}</div>
-        <div class="object-item small">${icons[2]}</div>
-      </div>
-      <div class="object-row" style="margin-bottom: 16px;">
-        <div class="object-item small">${'🍏'.repeat(3).split('').join('')}</div>
+        <div class="object-item small">🐶</div>
+        <div class="object-item small">🐱</div>
+        <div class="object-item small">🐰</div>
       </div>
       <div class="group-choice">
-        ${problem.leftCount} trái &nbsp; • &nbsp; ${problem.rightCount} phải
+        ${problem.leftCount} trái • ${problem.rightCount} phải
       </div>
       <div class="option-grid" style="margin-top: 20px;">
         ${problem.choices.map((choice) => `
@@ -234,36 +284,39 @@ function renderCountingGame() {
     `;
   }
 
-  html += `</div>`;
+  html += '</div>';
   document.getElementById('gameContent').innerHTML = html;
 
-  const answerButtons = document.querySelectorAll('.answer-btn');
-  answerButtons.forEach((button) => {
-    button.addEventListener('click', () => {
+  document.querySelectorAll('.answer-btn').forEach((button) => {
+    button.onclick = () => {
       const selected = button.dataset.answer;
       const isCorrect = button.dataset.correct === 'true';
       handleAnswer(isCorrect, selected, problem);
-    });
+    };
   });
 }
 
 function generateClockProblem() {
   const { min, max } = rangeForCurrentMode();
-  const hour = randomInt(min, Math.min(23, max + 3));
-  const minute = [0, 15, 30, 45][randomInt(0, 3)];
-  const display = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-  const answer = display;
-  const wrongs = [
-    `${String((hour + 1) % 12).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
-    `${String((hour + 2) % 12).padStart(2, '0')}:${String((minute + 15) % 60).padStart(2, '0')}`,
-    `${String((hour + 3) % 12).padStart(2, '0')}:${String((minute + 30) % 60).padStart(2, '0')}`
-  ];
+  const hourStart = state.mode === 'easy' ? min : Math.max(10, min);
+  const hourEnd = state.mode === 'easy' ? Math.min(10, max) : Math.min(20, max);
+  const hour = randomInt(hourStart, hourEnd);
+  const minute = [0, 30][randomInt(0, 1)];
+  const answer = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  const options = new Set([answer]);
+
+  while (options.size < 4) {
+    const candidateHour = randomInt(hourStart, hourEnd);
+    const candidateMinute = [0, 30][randomInt(0, 1)];
+    const value = `${String(candidateHour).padStart(2, '0')}:${String(candidateMinute).padStart(2, '0')}`;
+    options.add(value);
+  }
 
   return {
     hour,
     minute,
     answer,
-    options: shuffle([answer, ...wrongs]).slice(0, 4)
+    options: shuffle([...options])
   };
 }
 
@@ -273,9 +326,8 @@ function renderClockGame() {
   }
 
   const problem = state.problem;
-  const hourAngle = (problem.hour % 12) * 30 + (problem.minute / 60) * 30;
+  const hourAngle = ((problem.hour % 12) * 30) + (problem.minute / 60) * 30;
   const minuteAngle = problem.minute * 6;
-
   const tickMarks = Array.from({ length: 12 }, (_, index) => {
     const angle = (index / 12) * 360 - 90;
     return `<span class="tick" style="transform: rotate(${angle}deg);"></span>`;
@@ -284,9 +336,10 @@ function renderClockGame() {
   const html = `
     <div class="game-surface">
       <div class="question-top">
-        <p class="prompt">Đồng hồ hiện đang chỉ mấy giờ?</p>
+        <p class="prompt">Đồng hồ đang chỉ mấy giờ?</p>
         <span class="badge">${state.mode === 'easy' ? 'Mức dễ 0–10' : 'Mức nâng cao 10–20'}</span>
       </div>
+
       <div class="clock-wrap">
         <div class="clock-face">
           ${tickMarks}
@@ -296,6 +349,7 @@ function renderClockGame() {
         </div>
         <div class="clock-digital">${String(problem.hour).padStart(2, '0')}:${String(problem.minute).padStart(2, '0')}</div>
       </div>
+
       <div class="clock-choice-grid">
         ${problem.options.map((option) => `
           <button type="button" class="answer-btn" data-answer="${option}" data-correct="${option === problem.answer}">
@@ -303,25 +357,64 @@ function renderClockGame() {
           </button>
         `).join('')}
       </div>
+
+      <div class="input-submit-row">
+        <input id="clockInput" class="quiz-input" type="text" inputmode="numeric" placeholder="Nhập giờ: 08:30" aria-label="Nhập giờ" />
+        <button type="button" class="submit-btn" id="clockCheckBtn">Kiểm tra</button>
+      </div>
     </div>
   `;
 
   document.getElementById('gameContent').innerHTML = html;
 
   document.querySelectorAll('.answer-btn').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       const selected = button.dataset.answer;
       const isCorrect = button.dataset.correct === 'true';
       handleAnswer(isCorrect, selected, problem);
-    });
+    };
   });
+
+  const clockInput = document.getElementById('clockInput');
+  const clockCheckBtn = document.getElementById('clockCheckBtn');
+
+  clockCheckBtn.onclick = () => {
+    const value = normalizeClockInput(clockInput.value);
+    if (!value) {
+      addResultBanner('Hãy nhập giờ trước khi kiểm tra nhé! ⏰', false);
+      return;
+    }
+    const isCorrect = value === problem.answer;
+    handleAnswer(isCorrect, value, problem);
+  };
+}
+
+function normalizeClockInput(value) {
+  if (!value) return '';
+  const cleaned = value.replace(/\s+/g, '').replace(/[^\d:]/g, '');
+
+  if (!cleaned) return '';
+  if (cleaned.includes(':')) {
+    const [hourPart, minutePart] = cleaned.split(':');
+    const hour = Number(hourPart);
+    const minute = Number(minutePart || 0);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return '';
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  }
+
+  const digits = cleaned;
+  if (digits.length === 3) {
+    return `${digits.slice(0, 1).padStart(2, '0')}:${digits.slice(1)}`;
+  }
+  if (digits.length === 4) {
+    return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+  }
+  return '';
 }
 
 function generatePositionProblem() {
-  const relations = ['trên', 'dưới', 'trong', 'ngoài', 'trái', 'phải', 'trước', 'sau'];
-  const relation = relations[randomInt(0, relations.length - 1)];
-  const items = ['🐱', '🐰', '🦊', '🐼', '🐶'];
-  const item = items[randomInt(0, items.length - 1)];
+  const item = ['🐶', '🐱', '🐰', '🦊', '🐼', '🧸', '🎈', '🍉'][randomInt(0, 7)];
+  const relation = positionSlots[randomInt(0, positionSlots.length - 1)].key;
   return {
     item,
     relation,
@@ -336,17 +429,6 @@ function renderPositionGame() {
   }
 
   const problem = state.problem;
-  const targetSlots = [
-    { key: 'trên', label: 'Trên' },
-    { key: 'dưới', label: 'Dưới' },
-    { key: 'trong', label: 'Trong' },
-    { key: 'ngoài', label: 'Ngoài' },
-    { key: 'trái', label: 'Trái' },
-    { key: 'phải', label: 'Phải' },
-    { key: 'trước', label: 'Trước' },
-    { key: 'sau', label: 'Sau' }
-  ];
-
   const html = `
     <div class="game-surface">
       <div class="question-top">
@@ -355,18 +437,18 @@ function renderPositionGame() {
       </div>
 
       <div class="position-board">
-        <div class="drag-item" draggable="true" data-item="${problem.item}">${problem.item}</div>
+        <div class="drag-item" draggable="true" aria-label="Kéo vật" data-item="${problem.item}">${problem.item}</div>
       </div>
 
-      <div class="position-scene">
-        ${targetSlots.map((slot) => `
-          <div class="position-slot" data-slot="${slot.key}" data-label="${slot.label}" aria-label="${slot.label}"></div>
+      <div class="position-scene" id="positionScene">
+        ${positionSlots.map((slot) => `
+          <div class="position-slot" data-slot="${slot.key}" data-label="${slot.label}" aria-label="${slot.label}">${slot.label}</div>
         `).join('')}
       </div>
 
       <div class="target-list" style="margin-top: 20px;">
-        ${targetSlots.map((slot) => `
-          <button type="button" class="target-slot" data-target="${slot.key}">${slot.label}</button>
+        ${positionSlots.map((slot) => `
+          <button type="button" class="target-slot" data-target="${slot.key}" data-answer="${slot.key}" data-correct="${slot.key === problem.correctAnswer}">${slot.label}</button>
         `).join('')}
       </div>
     </div>
@@ -375,27 +457,67 @@ function renderPositionGame() {
   document.getElementById('gameContent').innerHTML = html;
 
   const dragItem = document.querySelector('.drag-item');
+  const scene = document.getElementById('positionScene');
+  const slots = document.querySelectorAll('.position-slot');
   const targetButtons = document.querySelectorAll('.target-slot');
 
   dragItem.addEventListener('dragstart', (event) => {
     event.dataTransfer.setData('text/plain', problem.item);
+    event.dataTransfer.effectAllowed = 'move';
   });
 
-  targetButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const isCorrect = button.dataset.target === problem.correctAnswer;
-      handleAnswer(isCorrect, button.dataset.target, problem);
-    });
+  dragItem.addEventListener('pointerdown', (event) => {
+    if (window.innerWidth < 768) {
+      const rect = scene.getBoundingClientRect();
+      const x = event.clientX - rect.left - dragItem.offsetWidth / 2;
+      const y = event.clientY - rect.top - dragItem.offsetHeight / 2;
+      dragItem.style.left = `${Math.max(0, Math.min(x, rect.width - dragItem.offsetWidth))}px`;
+      dragItem.style.top = `${Math.max(0, Math.min(y, rect.height - dragItem.offsetHeight))}px`;
+      dragItem.classList.add('is-dragging');
+      dragItem.setPointerCapture?.(event.pointerId);
+    }
   });
 
-  document.querySelectorAll('.position-slot').forEach((slot) => {
+  dragItem.addEventListener('pointermove', (event) => {
+    if (!dragItem.classList.contains('is-dragging')) return;
+    const rect = scene.getBoundingClientRect();
+    const x = event.clientX - rect.left - dragItem.offsetWidth / 2;
+    const y = event.clientY - rect.top - dragItem.offsetHeight / 2;
+    dragItem.style.left = `${Math.max(0, Math.min(x, rect.width - dragItem.offsetWidth))}px`;
+    dragItem.style.top = `${Math.max(0, Math.min(y, rect.height - dragItem.offsetHeight))}px`;
+  });
+
+  dragItem.addEventListener('pointerup', (event) => {
+    if (!dragItem.classList.contains('is-dragging')) return;
+    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.position-slot');
+    if (target) {
+      const selected = target.dataset.slot;
+      const isCorrect = selected === problem.correctAnswer;
+      handleAnswer(isCorrect, selected, problem);
+    } else {
+      dragItem.classList.remove('is-dragging');
+      dragItem.style.position = 'static';
+      dragItem.style.left = 'auto';
+      dragItem.style.top = 'auto';
+    }
+  });
+
+  slots.forEach((slot) => {
     slot.addEventListener('dragover', (event) => event.preventDefault());
     slot.addEventListener('drop', (event) => {
       event.preventDefault();
-      const dropped = slot.dataset.slot;
-      const isCorrect = dropped === problem.correctAnswer;
-      handleAnswer(isCorrect, dropped, problem);
+      const selected = slot.dataset.slot;
+      const isCorrect = selected === problem.correctAnswer;
+      handleAnswer(isCorrect, selected, problem);
     });
+  });
+
+  targetButtons.forEach((button) => {
+    button.onclick = () => {
+      const selected = button.dataset.target;
+      const isCorrect = selected === problem.correctAnswer;
+      handleAnswer(isCorrect, selected, problem);
+    };
   });
 }
 
@@ -403,15 +525,20 @@ function generateMissingProblem() {
   const { min, max } = rangeForCurrentMode();
   const start = randomInt(min, max - 2);
   const missingPosition = randomInt(0, 2);
-  const numbers = [start, start + 1, start + 2, start + 3];
-  const missingValue = numbers[missingPosition];
-  numbers[missingPosition] = null;
+  const values = [start, start + 1, start + 2, start + 3];
+  const missingValue = values[missingPosition];
+  values[missingPosition] = null;
 
   return {
-    sequence: numbers,
+    sequence: values,
     missingValue,
-    prompt: `Số còn thiếu: ${numbers.map((value) => value === null ? '—' : value).join(', ')}`,
-    options: shuffle([missingValue, missingValue + 1, Math.max(min, missingValue - 1), Math.min(max, missingValue + 2)]).filter((v, idx, arr) => arr.indexOf(v) === idx).slice(0, 4)
+    prompt: `Số còn thiếu: ${values.map((value) => value === null ? '—' : value).join(', ')}`,
+    options: shuffle([
+      missingValue,
+      missingValue + 1,
+      Math.max(min, missingValue - 1),
+      Math.min(max, missingValue + 2)
+    ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4)
   };
 }
 
@@ -447,11 +574,11 @@ function renderMissingGame() {
   document.getElementById('gameContent').innerHTML = html;
 
   document.querySelectorAll('.answer-btn').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       const selected = Number(button.dataset.answer);
-      const isCorrect = Number(button.dataset.correct) === true || Number(button.dataset.answer) === problem.missingValue;
+      const isCorrect = Number(button.dataset.answer) === problem.missingValue;
       handleAnswer(isCorrect, selected, problem);
-    });
+    };
   });
 }
 
@@ -461,7 +588,12 @@ function generateListenProblem() {
   return {
     number,
     prompt: `Số ${number}`,
-    options: shuffle([number, Math.max(min, number - 2), Math.min(max, number + 2), Math.max(min, number - 1)]).filter((v, idx, arr) => arr.indexOf(v) === idx).slice(0, 4)
+    options: shuffle([
+      number,
+      Math.max(min, number - 2),
+      Math.min(max, number + 2),
+      Math.max(min, number - 1)
+    ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4)
   };
 }
 
@@ -474,13 +606,20 @@ function renderListenGame() {
   const html = `
     <div class="game-surface">
       <div class="question-top">
-        <p class="prompt">Nghe tiếng và chọn số đúng</p>
-        <span class="badge">Nghe đọc</span>
+        <p class="prompt">Nghe và chọn số đúng</p>
+        <span class="badge">${state.mode === 'easy' ? 'Mức dễ 0–10' : 'Mức nâng cao 10–20'}</span>
       </div>
 
       <div class="narration-box">
         <button type="button" class="mini-icon" id="playVoiceBtn" aria-label="Nghe số">🔊</button>
-        <div class="big-number">?</div>
+        <button type="button" class="small-btn" id="soundToggleBtn" aria-label="Bật/tắt âm thanh">
+          ${state.soundEnabled ? 'Âm thanh bật' : 'Âm thanh tắt'}
+        </button>
+        <button type="button" class="small-btn" id="replayVoiceBtn" aria-label="Nghe lại số">Nghe lại</button>
+      </div>
+
+      <div class="narration-box">
+        <div class="big-number">${problem.number}</div>
       </div>
 
       <div class="option-grid" style="margin-top: 18px;">
@@ -494,14 +633,28 @@ function renderListenGame() {
   `;
 
   document.getElementById('gameContent').innerHTML = html;
-  document.getElementById('playVoiceBtn').addEventListener('click', () => speak(`Số ${problem.number}`));
+
+  const playVoiceBtn = document.getElementById('playVoiceBtn');
+  const replayVoiceBtn = document.getElementById('replayVoiceBtn');
+  const soundToggleBtn = document.getElementById('soundToggleBtn');
+
+  const playNumber = () => speakNumber(problem.number);
+  playVoiceBtn.onclick = playNumber;
+  replayVoiceBtn.onclick = playNumber;
+  soundToggleBtn.onclick = () => {
+    state.soundEnabled = !state.soundEnabled;
+    soundToggleBtn.textContent = state.soundEnabled ? 'Âm thanh bật' : 'Âm thanh tắt';
+    if (state.soundEnabled) {
+      speakNumber(problem.number);
+    }
+  };
 
   document.querySelectorAll('.answer-btn').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       const selected = Number(button.dataset.answer);
       const isCorrect = Number(button.dataset.answer) === problem.number;
       handleAnswer(isCorrect, selected, problem);
-    });
+    };
   });
 }
 
@@ -509,18 +662,18 @@ function generateQuantityProblem() {
   const { min, max } = rangeForCurrentMode();
   const number = randomInt(min, max);
   const object = icons[randomInt(0, icons.length - 1)];
-  const optionValues = shuffle([
+  const options = shuffle([
     number,
     Math.max(min, number - 2),
     Math.min(max, number + 2),
     Math.max(min, number - 1)
-  ]).filter((v, idx, arr) => arr.indexOf(v) === idx).slice(0, 4);
+  ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4);
 
   return {
     number,
     object,
     prompt: `Hãy chọn số lượng ${object} đúng bằng ${number}`,
-    options: optionValues
+    options
   };
 }
 
@@ -558,12 +711,34 @@ function renderQuantityGame() {
   document.getElementById('gameContent').innerHTML = html;
 
   document.querySelectorAll('.answer-btn').forEach((button) => {
-    button.addEventListener('click', () => {
+    button.onclick = () => {
       const selected = Number(button.dataset.answer);
       const isCorrect = Number(button.dataset.answer) === problem.number;
       handleAnswer(isCorrect, selected, problem);
-    });
+    };
   });
+}
+
+function getCorrectAnswerText(problem) {
+  if (state.currentGame === 'counting') {
+    return problem.count ?? problem.answer ?? problem.missingValue ?? problem.number ?? 'đáp án đúng';
+  }
+  if (state.currentGame === 'clock') {
+    return problem.answer;
+  }
+  if (state.currentGame === 'position') {
+    return problem.correctAnswer;
+  }
+  if (state.currentGame === 'missing') {
+    return problem.missingValue;
+  }
+  if (state.currentGame === 'listen') {
+    return problem.number;
+  }
+  if (state.currentGame === 'quantity') {
+    return problem.number;
+  }
+  return 'đáp án đúng';
 }
 
 function handleAnswer(isCorrect, selected, problem) {
@@ -572,8 +747,8 @@ function handleAnswer(isCorrect, selected, problem) {
 
   const buttons = document.querySelectorAll('.answer-btn, .target-slot');
   buttons.forEach((button) => {
-    const isButtonCorrect = button.dataset.correct === 'true';
-    if (isButtonCorrect) {
+    const buttonIsCorrect = button.dataset.correct === 'true';
+    if (buttonIsCorrect) {
       button.classList.add('correct');
     }
     if (button.dataset.answer === String(selected) && !isCorrect) {
@@ -595,34 +770,10 @@ function handleAnswer(isCorrect, selected, problem) {
   replayButton.className = 'action-btn';
   replayButton.textContent = 'Chơi lại';
   replayButton.style.marginTop = '16px';
-  replayButton.addEventListener('click', () => {
-    state.problem = null;
-    state.hasAnswered = false;
-    render();
-  });
+  replayButton.onclick = () => {
+    reRenderCurrentGame();
+  };
   document.getElementById('gameContent').appendChild(replayButton);
-}
-
-function getCorrectAnswerText(problem) {
-  if (state.currentGame === 'counting') {
-    return problem.count ?? problem.answer ?? problem.missingValue ?? '';
-  }
-  if (state.currentGame === 'clock') {
-    return problem.answer;
-  }
-  if (state.currentGame === 'position') {
-    return problem.correctAnswer;
-  }
-  if (state.currentGame === 'missing') {
-    return problem.missingValue;
-  }
-  if (state.currentGame === 'listen') {
-    return problem.number;
-  }
-  if (state.currentGame === 'quantity') {
-    return problem.number;
-  }
-  return 'đáp án đúng';
 }
 
 function renderGameContent() {
@@ -635,7 +786,11 @@ function renderGameContent() {
     quantity: renderQuantityGame
   };
 
-  document.getElementById('gameTitle').textContent = getGameTitle();
+  const gameTitle = document.getElementById('gameTitle');
+  if (gameTitle) {
+    gameTitle.textContent = getGameTitle();
+  }
+
   const renderer = gameMap[state.currentGame];
   if (renderer) {
     renderer();
@@ -650,15 +805,1018 @@ function render() {
 
 document.addEventListener('DOMContentLoaded', () => {
   render();
-  document.getElementById('voiceBtn').addEventListener('click', () => {
-    const guidance = {
-      counting: 'Bây giờ chúng ta cùng đếm số và làm phép tính. Hãy chọn đáp án đúng nhé.',
-      clock: 'Em hãy nhìn đồng hồ và chọn giờ đúng.',
-      position: 'Kéo con vật vào đúng vị trí: trên, dưới, trái, phải, trước hoặc sau.',
-      missing: 'Hãy tìm số còn thiếu trong dãy số.',
-      listen: 'Nghe và chọn số đúng.',
-      quantity: 'Hãy chọn đúng số lượng đồ vật tương ứng.'
+
+  const voiceBtn = document.getElementById('voiceBtn');
+  if (voiceBtn) {
+    voiceBtn.onclick = () => {
+      const guidance = {
+        counting: 'Bây giờ chúng ta cùng đếm số và làm phép tính. Hãy chọn đáp án đúng nhé.',
+        clock: 'Em hãy nhìn đồng hồ và chọn hoặc nhập giờ đúng.',
+        position: 'Kéo con vật vào đúng vị trí trên, dưới, trong, ngoài, trái, phải, trước hoặc sau.',
+        missing: 'Hãy tìm số còn thiếu trong dãy số.',
+        listen: 'Nghe và chọn số đúng.',
+        quantity: 'Hãy chọn đúng số lượng đồ vật tương ứng.'
+      };
+      speak(guidance[state.currentGame] || 'Chúng ta cùng học toán nhé!');
     };
-    speak(guidance[state.currentGame] || 'Chúng ta cùng học toán nhé!');
-  });
+  }
 });
+
+window.addEventListener('beforeunload', () => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+n
+
+
+
+
+
+n
+
+
+
+
+
+
+
+
+
+
+
+
+";
+
+
+
+
