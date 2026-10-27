@@ -366,7 +366,7 @@ function renderClockGame() {
   const minuteAngle = problem.minute * 6;
   const tickMarks = Array.from({ length: 12 }, (_, index) => {
     const angle = (index / 12) * 360 - 90;
-    return `<span class="tick" style="transform: rotate(${angle}deg);"></span>`;
+    return `<span class="tick" style="transform: translate(-50%, -94px) rotate(${angle}deg);"></span>`;
   }).join('');
 
   const html = `
@@ -379,8 +379,8 @@ function renderClockGame() {
       <div class="clock-wrap">
         <div class="clock-face">
           ${tickMarks}
-          <div class="hand hour" style="transform: rotate(${hourAngle}deg);"></div>
-          <div class="hand minute" style="transform: rotate(${minuteAngle}deg);"></div>
+          <div class="hand hour" style="transform: translate(-50%, -100%) rotate(${hourAngle}deg);"></div>
+          <div class="hand minute" style="transform: translate(-50%, -100%) rotate(${minuteAngle}deg);"></div>
           <div class="center"></div>
         </div>
         <div class="clock-digital">${String(problem.hour).padStart(2, '0')}:${String(problem.minute).padStart(2, '0')}</div>

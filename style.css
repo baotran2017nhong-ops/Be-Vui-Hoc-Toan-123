@@ -423,8 +423,9 @@ input {
 
 .clock-face {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: 216px;
+  height: 216px;
+  box-sizing: border-box;
   border-radius: 50%;
   background: radial-gradient(circle at center, #fffef8 0%, #fff 40%, #f5f5ff 100%);
   border: 8px solid #ffd760;
@@ -439,14 +440,15 @@ input {
   height: 14px;
   background: rgba(49, 81, 131, 0.6);
   border-radius: 999px;
-  transform-origin: center calc(100% + 80px);
+  transform-origin: center center;
 }
 
 .clock-face .hand {
   position: absolute;
-  bottom: 50%;
+  top: 50%;
   left: 50%;
-  transform-origin: center bottom;
+  bottom: auto;
+  transform-origin: 50% 100%;
   border-radius: 999px;
 }
 
@@ -454,14 +456,14 @@ input {
   width: 8px;
   height: 62px;
   background: linear-gradient(180deg, #61b5ff, #2f7ee9);
-  margin-left: -4px;
+  margin-left: 0;
 }
 
 .clock-face .hand.minute {
   width: 5px;
   height: 82px;
   background: linear-gradient(180deg, #ff8a80, #f06b7a);
-  margin-left: -2.5px;
+  margin-left: 0;
 }
 
 .clock-face .center {
@@ -782,3 +784,94 @@ input {
 .quantity-picture-option .picture-count { display: grid; grid-template-columns: repeat(4, minmax(22px, 1fr)); gap: 5px; justify-items: center; align-items: center; width: 100%; }
 .quantity-picture-option .picture-count span { font-size: clamp(22px, 4vw, 34px); line-height: 1.2; }
 @media (max-width: 520px) { .quantity-picture-option { min-height: 100px; } .quantity-picture-option .picture-count { grid-template-columns: repeat(3, minmax(20px, 1fr)); } }
+
+/* --- Giao dien tuoi vui, truc quan cho tre mam non --- */
+:root {
+  --ink: #203b70;
+  --text: #294777;
+  --shadow: rgba(69, 83, 160, .18);
+}
+body {
+  background:
+    radial-gradient(circle at 8% 18%, rgba(255,255,255,.78) 0 4px, transparent 5px),
+    radial-gradient(circle at 92% 30%, rgba(255,255,255,.72) 0 5px, transparent 6px),
+    linear-gradient(145deg, #9de9ff 0%, #d9f7ff 34%, #fff2b8 72%, #ffe0ee 100%);
+  background-attachment: fixed;
+}
+.app-shell { width: min(1240px, calc(100% - 30px)); margin-top: 18px; }
+.topbar {
+  background: linear-gradient(120deg, rgba(255,255,255,.94), rgba(255,255,255,.76));
+  border: 4px solid #fff;
+  border-radius: 32px;
+  box-shadow: 0 9px 0 rgba(114,177,231,.26), 0 18px 38px var(--shadow);
+}
+.brand-mark {
+  border-radius: 25px;
+  background: linear-gradient(145deg, #fff16a, #ffad5c 58%, #ff8dbd);
+  border: 4px solid #fff;
+  box-shadow: 0 7px 0 #efc06d, 0 12px 20px rgba(247,171,79,.24);
+  transform: rotate(-3deg);
+}
+.brand h1 { letter-spacing: -.035em; text-shadow: 0 2px 0 #fff; }
+.eyebrow { color: #7655c8; }
+.score-panel { background: linear-gradient(135deg,#fff3a7,#ffdc8b); border: 3px solid #fff; box-shadow: 0 5px 0 #efc36c; }
+.game-nav { gap: 12px; padding: 18px 2px; }
+.game-nav button {
+  background: linear-gradient(145deg,#fff,#f3f7ff);
+  border: 3px solid #fff;
+  box-shadow: 0 5px 0 #d5e2fa, 0 9px 16px rgba(57,91,155,.10);
+  color: #2e4777;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.game-nav button:hover { transform: translateY(-3px) rotate(-.5deg); }
+.game-nav button.active {
+  background: linear-gradient(135deg,#ffdf70,#ffb4d6);
+  border-color: #fff;
+  color: #593d7f;
+  box-shadow: 0 5px 0 #e9a8bd, 0 10px 18px rgba(235,132,173,.2);
+}
+.game-panel {
+  background: rgba(255,255,255,.82);
+  border: 4px solid #fff;
+  border-radius: 34px;
+  box-shadow: 0 9px 0 rgba(145,178,228,.32), 0 20px 45px var(--shadow);
+  padding: clamp(16px, 3vw, 30px);
+}
+.game-panel::before { background: linear-gradient(90deg,#ff8cbe,#ffd65e,#7edcff,#a9efa9); height: 9px; }
+.game-tag { display:inline-flex; padding:6px 12px; border-radius:999px; background:#eee6ff; color:#7253c4; }
+.game-header h2 { color:#233e72; text-shadow: 0 2px 0 #fff; }
+.mode-btn { background:#e9f4ff; border:2px solid #fff; box-shadow:0 3px 0 #c9ddf7; }
+.mode-btn.active { background:linear-gradient(135deg,#b6f4c5,#79dfac); color:#175a49; box-shadow:0 3px 0 #65c999; }
+.game-surface {
+  background: linear-gradient(145deg,rgba(255,255,255,.98),rgba(240,250,255,.94));
+  border: 3px solid #fff;
+  border-radius: 28px;
+  box-shadow: 0 6px 0 #dce9fb, 0 12px 24px rgba(55,86,145,.08);
+}
+.prompt { color:#244476; }
+.object-item { border:3px solid #fff; box-shadow:0 5px 0 #d7e5f8,0 8px 15px rgba(55,86,145,.09); }
+.answer-btn,.choice-btn,.submit-btn,.action-btn,.small-btn {
+  border: 3px solid #fff;
+  box-shadow: 0 5px 0 rgba(95,145,207,.24);
+  transition: transform .15s ease, filter .15s ease;
+}
+.answer-btn:hover,.choice-btn:hover,.submit-btn:hover,.action-btn:hover,.small-btn:hover { transform:translateY(-2px); filter:saturate(1.08); }
+.answer-btn { background:linear-gradient(135deg,#dff7ff,#c8eaff); }
+.choice-btn { background:linear-gradient(135deg,#fff2c6,#ffe0ec); }
+.result-banner { border:3px solid #fff; border-radius:20px; box-shadow:0 4px 0 rgba(85,135,190,.14); }
+.visual-drag-item { background:linear-gradient(145deg,#fff5a8,#ffd1e8 60%,#d9f4ff); box-shadow:0 7px 0 #edb5d1,0 12px 22px #00000012; }
+.visual-target { background:linear-gradient(145deg,#fff,#e9f8ff 65%,#f5eaff); box-shadow:0 6px 0 #d1d9f2,0 10px 18px rgba(60,90,150,.08); }
+.visual-target:nth-child(3n+1) { background:linear-gradient(145deg,#fff8c9,#e3ffec); }
+.visual-target:nth-child(3n+2) { background:linear-gradient(145deg,#ffe5f1,#f0eaff); }
+.visual-target:nth-child(3n) { background:linear-gradient(145deg,#ddf7ff,#e9e8ff); }
+.quantity-picture-option { background:linear-gradient(145deg,#fffbe8,#fff0f6); border:3px solid #fff; box-shadow:0 5px 0 #f1d78b; border-radius:24px; cursor:pointer; transition:transform .15s ease; }
+.quantity-picture-option:hover { transform:translateY(-3px); }
+.clock-face { box-shadow:0 0 0 7px #fff,0 0 0 11px #ffcf69,0 10px 20px rgba(40,65,115,.15); }
+@media (max-width:720px) {
+  .app-shell { width:calc(100% - 16px); margin-top:8px; }
+  .topbar { border-radius:24px; padding:14px; }
+  .game-panel { border-radius:26px; padding:16px; }
+  .game-nav { gap:9px; }
+  .game-nav button { border-radius:15px; }
+}
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior:auto !important; transition:none !important; animation:none !important; } }
