@@ -996,3 +996,24 @@ body {
 .compare-instruction{text-align:center;font-weight:900;color:#246aa7;font-size:clamp(1rem,2vw,1.25rem)}
 .compare-answer{font-size:2rem;min-height:75px}
 @media(max-width:520px){.compare-groups{gap:6px}.compare-group-card{padding:8px;min-height:120px}.compare-vs{font-size:1rem}.compare-object-grid{gap:2px}}
+
+
+/* Mặt đồng hồ có số rõ ràng, co giãn tốt trên điện thoại và không lộ đáp án số. */
+.clock-face .clock-number {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  color: #29436b;
+  font-size: clamp(0.72rem, 2.8vw, 1.05rem);
+  line-height: 1;
+  font-weight: 900;
+  width: 1.25em;
+  height: 1.25em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.clock-face .hand.hour { z-index: 2; }
+.clock-face .hand.minute { z-index: 3; }
+.clock-face .center { z-index: 4; }
