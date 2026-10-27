@@ -79,18 +79,54 @@ function updateScore() {
   if (scoreValue) scoreValue.textContent = state.score;
 }
 
-function speak(text) {
-  if (!state.soundEnabled || !('speechSynthesis' in window)) return;
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'vi-VN';
-  utter.rate = 0.96;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utter);
+
+// Âm thanh hiệu ứng ngắn tạo ngay trên trình duyệt; không đọc lời hướng dẫn.
+let audioContext = null;
+
+function playTone(frequency, duration, type = 'sine', volume = 0.045, delay = 0) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!audioContext) audioContext = new AudioCtx();
+    if (audioContext.state === 'suspended') audioContext.resume();
+
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const startAt = audioContext.currentTime + delay;
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, startAt);
+    gain.gain.setValueAtTime(0.0001, startAt);
+    gain.gain.exponentialRampToValueAtTime(volume, startAt + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(startAt);
+    oscillator.stop(startAt + duration + 0.02);
+  } catch (error) {
+    // Nếu thiết bị không hỗ trợ âm thanh, trò chơi vẫn hoạt động bình thường.
+  }
 }
 
-function speakNumber(number) {
-  const spokenText = `Số ${number}. ${numberWords[number] || number}.`;
-  speak(spokenText);
+function playTapSound() {
+  playTone(720, 0.07, 'sine', 0.025);
+}
+
+function playPopSound() {
+  playTone(560, 0.08, 'triangle', 0.045);
+  playTone(920, 0.12, 'sine', 0.035, 0.045);
+}
+
+function playCorrectSound() {
+  playTone(660, 0.13, 'sine', 0.055);
+  playTone(880, 0.16, 'sine', 0.055, 0.12);
+  playTone(1100, 0.20, 'sine', 0.05, 0.24);
+}
+
+function playWrongSound() {
+  playTone(240, 0.18, 'triangle', 0.045);
+  playTone(185, 0.22, 'triangle', 0.035, 0.13);
 }
 
 function renderGameNav() {
@@ -413,111 +449,65 @@ function normalizeClockInput(value) {
 }
 
 function generatePositionProblem() {
-  const item = ['🐶', '🐱', '🐰', '🦊', '🐼', '🧸', '🎈', '🍉'][randomInt(0, 7)];
-  const relation = positionSlots[randomInt(0, positionSlots.length - 1)].key;
-  return {
-    item,
-    relation,
-    prompt: `Kéo ${item} vào vị trí ${relation}`,
-    correctAnswer: relation
-  };
+  const activities = [
+    { kind: 'tidy', title: '🧸 Bé cất đồ dùng', items: [
+      { icon: '🧸', answer: 'toybox' }, { icon: '📚', answer: 'bookshelf' },
+      { icon: '👕', answer: 'wardrobe' }, { icon: '🍽️', answer: 'shelf' },
+      { icon: '🖍️', answer: 'pencilcase' }, { icon: '🧦', answer: 'wardrobe' }
+    ], places: [
+      { key: 'toybox', icon: '🧺🧸', label: 'Hộp đồ chơi' },
+      { key: 'bookshelf', icon: '📚🗄️', label: 'Giá sách' },
+      { key: 'wardrobe', icon: '🚪👕', label: 'Tủ quần áo' },
+      { key: 'shelf', icon: '🍽️🗃️', label: 'Kệ bát đĩa' },
+      { key: 'pencilcase', icon: '✏️🖍️', label: 'Hộp bút' }
+    ]},
+    { kind: 'animals', title: '🐾 Con vật về đúng nhà', items: [
+      { icon: '🐟', answer: 'water' }, { icon: '🐦', answer: 'nest' },
+      { icon: '🐰', answer: 'burrow' }, { icon: '🐒', answer: 'forest' },
+      { icon: '🐄', answer: 'farm' }, { icon: '🐝', answer: 'hive' }
+    ], places: [
+      { key: 'water', icon: '🌊🐠', label: 'Ao, hồ' },
+      { key: 'nest', icon: '🌳🪺', label: 'Tổ chim' },
+      { key: 'burrow', icon: '🌿🕳️', label: 'Hang thỏ' },
+      { key: 'forest', icon: '🌴🌳', label: 'Rừng' },
+      { key: 'farm', icon: '🏡🌾', label: 'Nông trại' },
+      { key: 'hive', icon: '🌼🍯', label: 'Tổ ong' }
+    ]}
+  ];
+  const activity = activities[randomInt(0, activities.length - 1)];
+  const item = activity.items[randomInt(0, activity.items.length - 1)];
+  return { ...activity, item: item.icon, correctAnswer: item.answer, prompt: activity.title };
 }
 
 function renderPositionGame() {
-  if (!state.problem || !state.problem.correctAnswer) {
-    state.problem = generatePositionProblem();
-  }
-
+  if (!state.problem || !state.problem.correctAnswer || !state.problem.places) state.problem = generatePositionProblem();
   const problem = state.problem;
   const html = `
-    <div class="game-surface">
-      <div class="question-top">
-        <p class="prompt">${problem.prompt}</p>
-        <span class="badge">Kéo và thả</span>
+    <div class="game-surface visual-drag-game">
+      <div class="question-top"><p class="prompt">${problem.prompt}</p><span class="badge">👆 Kéo hình vào đúng chỗ</span></div>
+      <p class="visual-instruction">${problem.kind === 'tidy' ? '🧹 Giúp bé cất đồ dùng gọn gàng nhé!' : '🏡 Hãy đưa mỗi con vật về đúng nơi sống!'}</p>
+      <div class="visual-drag-item" id="visualDragItem" draggable="true" aria-label="Hình cần kéo">${problem.item}</div>
+      <div class="visual-target-grid">
+        ${problem.places.map(place => `<button type="button" class="visual-target" data-target="${place.key}" data-answer="${place.key}" data-correct="${place.key === problem.correctAnswer}"><span class="target-picture">${place.icon}</span><span class="target-label">${place.label}</span></button>`).join('')}
       </div>
-
-      <div class="position-board">
-        <div class="drag-item" draggable="true" aria-label="Kéo vật" data-item="${problem.item}">${problem.item}</div>
-      </div>
-
-      <div class="position-scene" id="positionScene">
-        ${positionSlots.map((slot) => `
-          <div class="position-slot" data-slot="${slot.key}" data-label="${slot.label}" aria-label="${slot.label}">${slot.label}</div>
-        `).join('')}
-      </div>
-
-      <div class="target-list" style="margin-top: 20px;">
-        ${positionSlots.map((slot) => `
-          <button type="button" class="target-slot" data-target="${slot.key}" data-answer="${slot.key}" data-correct="${slot.key === problem.correctAnswer}">${slot.label}</button>
-        `).join('')}
-      </div>
-    </div>
-  `;
-
+      <p class="visual-hint">💡 Chạm vào nơi đúng hoặc kéo hình vào đó.</p>
+    </div>`;
   document.getElementById('gameContent').innerHTML = html;
-
-  const dragItem = document.querySelector('.drag-item');
-  const scene = document.getElementById('positionScene');
-  const slots = document.querySelectorAll('.position-slot');
-  const targetButtons = document.querySelectorAll('.target-slot');
-
-  dragItem.addEventListener('dragstart', (event) => {
-    event.dataTransfer.setData('text/plain', problem.item);
-    event.dataTransfer.effectAllowed = 'move';
+  const item = document.getElementById('visualDragItem');
+  const targets = document.querySelectorAll('.visual-target');
+  const answer = (selected) => handleAnswer(selected === problem.correctAnswer, selected, problem);
+  item.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', problem.item); e.dataTransfer.effectAllowed = 'move'; });
+  item.addEventListener('pointerdown', e => { item.setPointerCapture?.(e.pointerId); item.classList.add('is-being-dragged'); });
+  item.addEventListener('pointerup', e => {
+    item.classList.remove('is-being-dragged');
+    const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.visual-target');
+    if (target) answer(target.dataset.target);
   });
-
-  dragItem.addEventListener('pointerdown', (event) => {
-    if (window.innerWidth < 768) {
-      const rect = scene.getBoundingClientRect();
-      const x = event.clientX - rect.left - dragItem.offsetWidth / 2;
-      const y = event.clientY - rect.top - dragItem.offsetHeight / 2;
-      dragItem.style.left = `${Math.max(0, Math.min(x, rect.width - dragItem.offsetWidth))}px`;
-      dragItem.style.top = `${Math.max(0, Math.min(y, rect.height - dragItem.offsetHeight))}px`;
-      dragItem.classList.add('is-dragging');
-      dragItem.setPointerCapture?.(event.pointerId);
-    }
-  });
-
-  dragItem.addEventListener('pointermove', (event) => {
-    if (!dragItem.classList.contains('is-dragging')) return;
-    const rect = scene.getBoundingClientRect();
-    const x = event.clientX - rect.left - dragItem.offsetWidth / 2;
-    const y = event.clientY - rect.top - dragItem.offsetHeight / 2;
-    dragItem.style.left = `${Math.max(0, Math.min(x, rect.width - dragItem.offsetWidth))}px`;
-    dragItem.style.top = `${Math.max(0, Math.min(y, rect.height - dragItem.offsetHeight))}px`;
-  });
-
-  dragItem.addEventListener('pointerup', (event) => {
-    if (!dragItem.classList.contains('is-dragging')) return;
-    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.position-slot');
-    if (target) {
-      const selected = target.dataset.slot;
-      const isCorrect = selected === problem.correctAnswer;
-      handleAnswer(isCorrect, selected, problem);
-    } else {
-      dragItem.classList.remove('is-dragging');
-      dragItem.style.position = 'static';
-      dragItem.style.left = 'auto';
-      dragItem.style.top = 'auto';
-    }
-  });
-
-  slots.forEach((slot) => {
-    slot.addEventListener('dragover', (event) => event.preventDefault());
-    slot.addEventListener('drop', (event) => {
-      event.preventDefault();
-      const selected = slot.dataset.slot;
-      const isCorrect = selected === problem.correctAnswer;
-      handleAnswer(isCorrect, selected, problem);
-    });
-  });
-
-  targetButtons.forEach((button) => {
-    button.onclick = () => {
-      const selected = button.dataset.target;
-      const isCorrect = selected === problem.correctAnswer;
-      handleAnswer(isCorrect, selected, problem);
-    };
+  targets.forEach(target => {
+    target.addEventListener('dragover', e => { e.preventDefault(); target.classList.add('target-hover'); });
+    target.addEventListener('dragleave', () => target.classList.remove('target-hover'));
+    target.addEventListener('drop', e => { e.preventDefault(); answer(target.dataset.target); });
+    target.addEventListener('click', () => answer(target.dataset.target));
   });
 }
 
@@ -584,76 +574,63 @@ function renderMissingGame() {
 
 function generateListenProblem() {
   const { min, max } = rangeForCurrentMode();
-  const number = randomInt(min, max);
-  return {
+  const lower = Math.max(1, min);
+  const number = randomInt(lower, Math.min(max, 10));
+  const objectPool = ['🐱', '🐶', '🐰', '🐟', '🦋', '🍎', '🍓', '🚗', '🌼', '⚽'];
+  const object = objectPool[randomInt(0, objectPool.length - 1)];
+  const counts = shuffle([
     number,
-    prompt: `Số ${number}`,
-    options: shuffle([
-      number,
-      Math.max(min, number - 2),
-      Math.min(max, number + 2),
-      Math.max(min, number - 1)
-    ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4)
-  };
+    Math.max(1, number - 1),
+    Math.min(10, number + 1),
+    number <= 8 ? number + 2 : number - 2
+  ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4);
+  while (counts.length < 4) {
+    const candidate = randomInt(1, 10);
+    if (!counts.includes(candidate)) counts.push(candidate);
+  }
+  return { number, object, options: shuffle(counts) };
 }
 
 function renderListenGame() {
-  if (!state.problem || !state.problem.number) {
+  if (!state.problem || !state.problem.number || !state.problem.object || !state.problem.options) {
     state.problem = generateListenProblem();
   }
-
   const problem = state.problem;
   const html = `
     <div class="game-surface">
       <div class="question-top">
-        <p class="prompt">Nghe và chọn số đúng</p>
-        <span class="badge">${state.mode === 'easy' ? 'Mức dễ 0–10' : 'Mức nâng cao 10–20'}</span>
+        <p class="prompt">Nhìn số, chọn nhóm hình có số lượng tương ứng!</p>
+        <span class="badge">Bé đếm bằng mắt</span>
       </div>
-
-      <div class="narration-box">
-        <button type="button" class="mini-icon" id="playVoiceBtn" aria-label="Nghe số">🔊</button>
-        <button type="button" class="small-btn" id="soundToggleBtn" aria-label="Bật/tắt âm thanh">
-          ${state.soundEnabled ? 'Âm thanh bật' : 'Âm thanh tắt'}
-        </button>
-        <button type="button" class="small-btn" id="replayVoiceBtn" aria-label="Nghe lại số">Nghe lại</button>
+      <div class="narration-box" style="flex-direction:column; gap:8px;">
+        <div class="big-number" aria-label="Số cần tìm">${problem.number}</div>
+        <div style="font-size:1.1rem;">🔊 Nghe số rồi tìm nhóm hình đúng nhé!</div>
+        <button type="button" class="small-btn" id="replayVoiceBtn">🔊 Nghe lại số</button>
       </div>
-
-      <div class="narration-box">
-        <div class="big-number">${problem.number}</div>
-      </div>
-
-      <div class="option-grid" style="margin-top: 18px;">
-        ${problem.options.map((option) => `
-          <button type="button" class="answer-btn" data-answer="${option}" data-correct="${option === problem.number}">
-            ${option}
+      <div class="option-grid quantity-picture-options" style="margin-top:18px;">
+        ${problem.options.map((count, index) => `
+          <button type="button" class="answer-btn quantity-picture-option" data-answer="${count}" data-correct="${count === problem.number}" aria-label="Nhóm có ${count} hình">
+            <span class="picture-count" aria-hidden="true">${Array.from({length: count}, () => `<span>${problem.object}</span>`).join('')}</span>
           </button>
         `).join('')}
       </div>
     </div>
   `;
-
   document.getElementById('gameContent').innerHTML = html;
-
-  const playVoiceBtn = document.getElementById('playVoiceBtn');
-  const replayVoiceBtn = document.getElementById('replayVoiceBtn');
-  const soundToggleBtn = document.getElementById('soundToggleBtn');
-
-  const playNumber = () => speakNumber(problem.number);
-  playVoiceBtn.onclick = playNumber;
-  replayVoiceBtn.onclick = playNumber;
-  soundToggleBtn.onclick = () => {
-    state.soundEnabled = !state.soundEnabled;
-    soundToggleBtn.textContent = state.soundEnabled ? 'Âm thanh bật' : 'Âm thanh tắt';
-    if (state.soundEnabled) {
-      speakNumber(problem.number);
-    }
+  const sayNumber = () => {
+    if (!state.soundEnabled || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(numberWords[problem.number] || String(problem.number));
+    utterance.lang = 'vi-VN';
+    utterance.rate = 0.8;
+    window.speechSynthesis.speak(utterance);
   };
-
-  document.querySelectorAll('.answer-btn').forEach((button) => {
+  document.getElementById('replayVoiceBtn')?.addEventListener('click', sayNumber);
+  sayNumber();
+  document.querySelectorAll('.quantity-picture-option').forEach((button) => {
     button.onclick = () => {
       const selected = Number(button.dataset.answer);
-      const isCorrect = Number(button.dataset.answer) === problem.number;
-      handleAnswer(isCorrect, selected, problem);
+      handleAnswer(selected === problem.number, selected, problem);
     };
   });
 }
@@ -720,6 +697,8 @@ function renderQuantityGame() {
 }
 
 function getCorrectAnswerText(problem) {
+  if (state.currentGame === 'listen' && problem && problem.object) return `nhóm có ${problem.number} hình ${problem.object}`;
+  if (problem && problem.places) { const place = problem.places.find(p => p.key === problem.correctAnswer); return place ? place.label : 'nơi đúng'; }
   if (state.currentGame === 'counting') {
     return problem.count ?? problem.answer ?? problem.missingValue ?? problem.number ?? 'đáp án đúng';
   }
@@ -759,10 +738,12 @@ function handleAnswer(isCorrect, selected, problem) {
   if (isCorrect) {
     awardPoints(10);
     addResultBanner('Tuyệt vời! Đáp án đúng! 👏', true);
-    speak('Đúng rồi! Chúc mừng bạn!');
+    playCorrectSound();
+
   } else {
     addResultBanner(`Chưa đúng rồi. Đáp án là ${getCorrectAnswerText(problem)}. Cố gắng lần sau nhé! 🌟`, false);
-    speak(`Rất tiếc. Đáp án đúng là ${getCorrectAnswerText(problem)}.`);
+    playWrongSound();
+
   }
 
   const replayButton = document.createElement('button');
@@ -803,1020 +784,22 @@ function render() {
   renderGameContent();
 }
 
+
 document.addEventListener('DOMContentLoaded', () => {
   render();
-
-  const voiceBtn = document.getElementById('voiceBtn');
-  if (voiceBtn) {
-    voiceBtn.onclick = () => {
-      const guidance = {
-        counting: 'Bây giờ chúng ta cùng đếm số và làm phép tính. Hãy chọn đáp án đúng nhé.',
-        clock: 'Em hãy nhìn đồng hồ và chọn hoặc nhập giờ đúng.',
-        position: 'Kéo con vật vào đúng vị trí trên, dưới, trong, ngoài, trái, phải, trước hoặc sau.',
-        missing: 'Hãy tìm số còn thiếu trong dãy số.',
-        listen: 'Nghe và chọn số đúng.',
-        quantity: 'Hãy chọn đúng số lượng đồ vật tương ứng.'
-      };
-      speak(guidance[state.currentGame] || 'Chúng ta cùng học toán nhé!');
-    };
-  }
 });
 
-window.addEventListener('beforeunload', () => {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
+// Âm thanh nhỏ khi trẻ thao tác với trò chơi. Âm đúng/sai được phát riêng trong handleAnswer.
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (!button || button.disabled) return;
+  if (button.matches('.answer-btn, .target-slot, #clockCheckBtn')) return;
+  playTapSound();
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-n
-
-
-
-
-
-n
-
-
-
-
-
-
-
-
-
-
-
-
-";
-
-
-
-
+document.addEventListener('click', (event) => {
+  if (event.target.closest('.object-item, .object-row, .count-object, .drag-item, .position-object')) {
+    playPopSound();
+  }
+});
