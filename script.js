@@ -197,66 +197,48 @@ function reRenderCurrentGame() {
 }
 
 function generateCountProblem() {
-  const { min, max } = rangeForCurrentMode();
-  const kindRoll = Math.random();
-  const object = icons[randomInt(0, icons.length - 1)];
+  const limit = state.mode === 'easy' ? 10 : 20;
+  const isAddition = Math.random() < 0.5;
+  let a;
+  let b;
+  let answer;
 
-  if (kindRoll < 0.38) {
-    const count = randomInt(min, max);
-    const choices = shuffle([
-      count,
-      count < max ? count + 1 : count - 1,
-      Math.max(min, count - 2),
-      Math.min(max, count + 2)
-    ]).filter((value, idx, array) => array.indexOf(value) === idx);
-
-    return {
-      type: 'count',
-      question: 'Có bao nhiêu đồ vật?',
-      prompt: `Có bao nhiêu ${object} đây?`,
-      count,
-      objects: Array.from({ length: count }, (_, index) => ({ icon: object, key: `${object}-${index}` })),
-      choices: shuffle(choices).map((value) => ({ value, label: String(value) }))
-    };
+  if (isAddition) {
+    // Cộng không nhớ: chữ số hàng đơn vị cộng lại nhỏ hơn 10.
+    const possiblePairs = [];
+    for (let x = 0; x <= limit; x += 1) {
+      for (let y = 0; y <= limit - x; y += 1) {
+        if ((x % 10) + (y % 10) < 10) possiblePairs.push([x, y]);
+      }
+    }
+    [a, b] = possiblePairs[randomInt(0, possiblePairs.length - 1)];
+    answer = a + b;
+  } else {
+    // Trừ không mượn: chữ số hàng đơn vị của số bị trừ không nhỏ hơn số trừ.
+    const possiblePairs = [];
+    for (let x = 0; x <= limit; x += 1) {
+      for (let y = 0; y <= x; y += 1) {
+        if ((x % 10) >= (y % 10)) possiblePairs.push([x, y]);
+      }
+    }
+    [a, b] = possiblePairs[randomInt(0, possiblePairs.length - 1)];
+    answer = a - b;
   }
 
-  if (kindRoll < 0.7) {
-    const a = randomInt(min, Math.min(max, 9));
-    const b = randomInt(0, Math.max(0, max - a));
-    const total = a + b;
-    const wrongs = shuffle([
-      total,
-      Math.max(min, total - 2),
-      total + 2,
-      Math.max(min, total - 1)
-    ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4);
-
-    return {
-      type: 'sum',
-      question: 'Tính tổng số lượng',
-      prompt: `${a} + ${b} = ?`,
-      answer: total,
-      choices: wrongs
-    };
+  const candidates = new Set([answer]);
+  while (candidates.size < 4) {
+    const offset = randomInt(1, 3) * (Math.random() < 0.5 ? -1 : 1);
+    const distractor = answer + offset;
+    if (distractor >= 0 && distractor <= limit) candidates.add(distractor);
   }
-
-  const left = randomInt(Math.max(1, min), Math.max(2, max));
-  let right = randomInt(Math.max(1, min), Math.max(2, max));
-  if (Math.random() < 0.75 && right === left) right = left < max ? left + 1 : Math.max(1, left - 1);
-  const answer = left > right ? 'trái' : left < right ? 'phải' : 'bằng nhau';
 
   return {
-    type: 'compare',
-    question: 'Nhóm nào có nhiều hơn?',
-    prompt: 'Nhóm nào có nhiều hơn?',
-    leftCount: left,
-    rightCount: right,
+    type: 'sum',
+    operation: isAddition ? 'addition' : 'subtraction',
+    question: isAddition ? 'Phép cộng không nhớ' : 'Phép trừ không mượn',
+    prompt: `${a} ${isAddition ? '+' : '−'} ${b} = ?`,
     answer,
-    choices: shuffle([
-      { value: 'trái', label: '👈', aria: 'Nhóm bên trái' },
-      { value: 'phải', label: '👉', aria: 'Nhóm bên phải' },
-      { value: 'bằng nhau', label: '🤝', aria: 'Hai nhóm bằng nhau' }
-    ])
+    choices: shuffle([...candidates])
   };
 }
 
@@ -270,7 +252,7 @@ function renderCountingGame() {
     <div class="game-surface">
       <div class="question-top">
         <p class="prompt">${problem.prompt}</p>
-        <span class="badge">${state.mode === 'easy' ? 'Mức dễ 0–10' : 'Mức nâng cao 10–20'}</span>
+        <span class="badge">${state.mode === 'easy' ? 'Dễ: Cộng – trừ trong phạm vi 10, không nhớ' : 'Khó: Cộng – trừ trong phạm vi 20, không nhớ'}</span>
       </div>
   `;
 
@@ -291,6 +273,7 @@ function renderCountingGame() {
     html += `
       <div class="narration-box">
         <div class="mini-icon">🧮</div>
+        <div class="question-label">${problem.question}</div>
         <div class="big-number">${problem.prompt}</div>
       </div>
       <div class="option-grid" style="margin-top: 20px;">
