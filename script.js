@@ -365,13 +365,19 @@ function renderClockGame() {
       </div>
 
       <div class="clock-wrap">
-        <div class="clock-face">
+        <div class="clock-face" role="img" aria-label="Đồng hồ kim, hãy đọc giờ trên mặt đồng hồ">
+          ${Array.from({ length: 12 }, (_, index) => {
+            const number = index === 0 ? 12 : index;
+            const angle = (index * 30 - 90) * Math.PI / 180;
+            const x = 50 + 36 * Math.cos(angle);
+            const y = 50 + 36 * Math.sin(angle);
+            return `<span class="clock-number" style="left:${x}%;top:${y}%;">${number}</span>`;
+          }).join('')}
           ${tickMarks}
           <div class="hand hour" style="transform: translate(-50%, -100%) rotate(${hourAngle}deg);"></div>
           <div class="hand minute" style="transform: translate(-50%, -100%) rotate(${minuteAngle}deg);"></div>
           <div class="center"></div>
         </div>
-        <div class="clock-digital">${String(problem.hour).padStart(2, '0')}:${String(problem.minute).padStart(2, '0')}</div>
       </div>
 
       <div class="clock-choice-grid">
@@ -501,27 +507,29 @@ function renderPositionGame() {
 
 function generateMissingProblem() {
   const { min, max } = rangeForCurrentMode();
-  const start = randomInt(min, max - 2);
-  const missingPosition = randomInt(0, 2);
+  // Dãy tăng dần 1 đơn vị, luôn nằm trọn trong phạm vi đang học.
+  const start = randomInt(min, max - 3);
+  const missingPosition = randomInt(0, 3);
   const values = [start, start + 1, start + 2, start + 3];
   const missingValue = values[missingPosition];
   values[missingPosition] = null;
+
+  const options = new Set([missingValue]);
+  while (options.size < 4) {
+    const candidate = randomInt(min, max);
+    options.add(candidate);
+  }
 
   return {
     sequence: values,
     missingValue,
     prompt: `Số còn thiếu: ${values.map((value) => value === null ? '—' : value).join(', ')}`,
-    options: shuffle([
-      missingValue,
-      missingValue + 1,
-      Math.max(min, missingValue - 1),
-      Math.min(max, missingValue + 2)
-    ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4)
+    options: shuffle([...options])
   };
 }
 
 function renderMissingGame() {
-  if (!state.problem || !state.problem.missingValue) {
+  if (!state.problem || state.problem.missingValue === undefined) {
     state.problem = generateMissingProblem();
   }
 
