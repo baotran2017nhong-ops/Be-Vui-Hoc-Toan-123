@@ -1,1418 +1,841 @@
-:root {
-  --sky: #7dd3fc;
-  --sky-strong: #38bdf8;
-  --pink: #ff8ac5;
-  --pink-strong: #ff5ea8;
-  --yellow: #ffe66d;
-  --yellow-strong: #f7c948;
-  --green: #8fe3a8;
-  --green-strong: #59c57a;
-  --purple: #c6b3ff;
-  --purple-strong: #8f7de6;
-  --orange: #ffb466;
-  --orange-strong: #ff9349;
-  --red: #ff7a7a;
-  --red-strong: #ff5c5c;
-  --text: #315183;
-  --ink: #173563;
-  --card: rgba(255, 255, 255, 0.74);
-  --shadow: rgba(42, 94, 170, 0.14);
-  --success: #2cc58a;
-  --danger: #f05656;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  font-family: "Segoe UI", Tahoma, sans-serif;
-  background: linear-gradient(180deg, #b5f1ff 0%, #d5f8ff 30%, #fef8c3 100%);
-  color: var(--ink);
-  min-height: 100vh;
-  overflow-x: hidden;
-  position: relative;
-}
-
-button,
-input {
-  font: inherit;
-}
-
-.background-orb {
-  position: fixed;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(6px);
-  opacity: 0.5;
-}
-
-.orb-one {
-  width: 220px;
-  height: 220px;
-  background: rgba(255, 145, 214, 0.45);
-  top: 5%;
-  left: 5%;
-}
-
-.orb-two {
-  width: 280px;
-  height: 280px;
-  background: rgba(134, 228, 255, 0.45);
-  right: 6%;
-  top: 10%;
-}
-
-.orb-three {
-  width: 320px;
-  height: 320px;
-  background: rgba(255, 208, 92, 0.38);
-  bottom: 1%;
-  left: 35%;
-}
-
-.app-shell {
-  width: min(1200px, calc(100% - 24px));
-  margin: 24px auto 60px;
-  position: relative;
-  z-index: 1;
-}
-
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(12px);
-  border: 3px solid rgba(255, 255, 255, 0.7);
-  border-radius: 28px;
-  box-shadow: 0 18px 40px var(--shadow);
-  padding: 18px 22px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-
-.brand-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
-  background: linear-gradient(135deg, var(--yellow), var(--orange));
-  border: 4px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 0 10px 18px rgba(247, 201, 72, 0.42);
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: var(--text);
-}
-
-.eyebrow {
-  margin: 0;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--purple-strong);
-  font-weight: 800;
-}
-
-.brand h1 {
-  margin: 4px 0 0;
-  font-size: clamp(1.7rem, 2vw, 2.5rem);
-  color: var(--ink);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.score-panel,
-.ghost-btn,
-.mode-btn,
-.game-nav button,
-.answer-btn,
-.choice-btn,
-.action-btn,
-.drag-item,
-.target-slot,
-.quiz-input,
-.submit-btn,
-.small-btn {
-  border: none;
-  border-radius: 18px;
-  font-weight: 800;
-}
-
-.score-panel {
-  background: linear-gradient(135deg, #fff, #fef6b7);
-  border: 3px solid rgba(255, 217, 99, 0.7);
-  padding: 10px 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.4);
-}
-
-.score-panel span {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  color: var(--purple-strong);
-}
-
-.score-panel strong {
-  font-size: 1.7rem;
-  color: var(--ink);
-}
-
-.ghost-btn,
-.action-btn,
-.submit-btn,
-.small-btn {
-  background: linear-gradient(135deg, var(--purple), var(--pink));
-  color: white;
-  padding: 12px 18px;
-  box-shadow: 0 10px 18px rgba(143, 125, 230, 0.2);
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.ghost-btn:hover,
-.action-btn:hover,
-.submit-btn:hover,
-.small-btn:hover,
-.mode-btn:hover,
-.game-nav button:hover,
-.answer-btn:hover,
-.choice-btn:hover,
-.drag-item:hover,
-.target-slot:hover {
-  transform: translateY(-2px) scale(1.01);
-}
-
-.game-nav {
-  margin-top: 22px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(120px, 1fr));
-  gap: 14px;
-}
-
-.game-nav button {
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--ink);
-  padding: 16px 12px;
-  box-shadow: 0 10px 18px var(--shadow);
-  border: 3px solid rgba(255, 255, 255, 0.7);
-  cursor: pointer;
-  font-size: 1rem;
-  transition: transform 0.18s ease, background 0.18s ease;
-}
-
-.game-nav button.active {
-  background: linear-gradient(135deg, var(--sky), var(--green));
-  color: var(--ink);
-}
-
-.game-panel {
-  position: relative;
-  margin-top: 22px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 3px solid rgba(255, 255, 255, 0.78);
-  border-radius: 32px;
-  box-shadow: 0 18px 40px rgba(75, 120, 188, 0.14);
-  padding: 22px;
-  overflow: hidden;
-}
-
-.game-panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top right, rgba(255, 220, 126, 0.35), transparent 28%);
-  pointer-events: none;
-}
-
-.game-header {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.game-tag {
-  margin: 0 0 6px;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--purple-strong);
-  font-weight: 800;
-}
-
-.game-header h2 {
-  margin: 0;
-  font-size: clamp(1.5rem, 2vw, 2.2rem);
-  color: var(--ink);
-}
-
-.difficulty-switch {
-  display: flex;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 6px;
-  border-radius: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-}
-
-.mode-btn {
-  background: transparent;
-  color: var(--text);
-  padding: 10px 18px;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.mode-btn.active {
-  background: linear-gradient(135deg, var(--yellow), var(--orange));
-  box-shadow: 0 8px 18px rgba(247, 201, 72, 0.16);
-}
-
-.game-content {
-  position: relative;
-  z-index: 1;
-  margin-top: 22px;
-}
-
-.game-surface {
-  position: relative;
-  background: linear-gradient(180deg, rgba(182, 240, 255, 0.32), rgba(255, 255, 255, 0.5));
-  border-radius: 26px;
-  padding: 22px;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.5);
-}
-
-.game-surface::before {
-  content: "";
-  position: absolute;
-  inset: 10px;
-  border: 2px dashed rgba(121, 175, 255, 0.4);
-  border-radius: 20px;
-  pointer-events: none;
-}
-
-.question-top {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.prompt {
-  font-size: clamp(1.25rem, 2vw, 1.8rem);
-  font-weight: 900;
-  margin: 0;
-  color: var(--ink);
-}
-
-.badge {
-  padding: 10px 16px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, var(--green), #b2f4c9);
-  color: var(--ink);
-  border: 2px solid rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.object-row,
-.option-grid,
-.choice-list,
-.group-choice,
-.position-grid,
-.clock-choice-grid,
-.match-row,
-.answer-row {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  justify-content: center;
-}
-
-.object-item {
-  position: relative;
-  width: 82px;
-  height: 82px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 22px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(178, 238, 255, 0.7));
-  border: 3px solid rgba(255,255,255,0.85);
-  box-shadow: 0 12px 24px rgba(110, 163, 199, 0.14);
-  font-size: 2.3rem;
-  animation: floatUp 3s ease-in-out infinite;
-}
-
-.object-item:nth-child(2n) {
-  animation-delay: 0.5s;
-}
-
-.object-item.small {
-  width: 68px;
-  height: 68px;
-  font-size: 1.9rem;
-}
-
-.answer-btn,
-.choice-btn,
-.submit-btn {
-  background: linear-gradient(135deg, #fff, #e8f9ff);
-  border: 3px solid rgba(255, 255, 255, 0.75);
-  color: var(--ink);
-  box-shadow: 0 12px 20px rgba(67, 119, 191, 0.12);
-  cursor: pointer;
-  min-width: 122px;
-  padding: 14px 18px;
-  font-size: 1.05rem;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
-}
-
-.answer-btn.correct,
-.choice-btn.correct {
-  background: linear-gradient(135deg, #b8f8d4, #8ce7b0);
-  border-color: rgba(44, 197, 138, 0.9);
-}
-
-.answer-btn.wrong,
-.choice-btn.wrong {
-  background: linear-gradient(135deg, #ffd3d3, #ffab9c);
-  border-color: rgba(240, 86, 86, 0.85);
-}
-
-.clock-wrap {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 28px;
-  flex-wrap: wrap;
-  margin: 18px 0 24px;
-}
-
-.clock-face {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, #fffef8 0%, #fff 40%, #f5f5ff 100%);
-  border: 8px solid #ffd760;
-  box-shadow: inset 0 0 0 12px rgba(255, 233, 147, 0.45), 0 18px 28px rgba(115, 136, 181, 0.12);
-}
-
-.clock-face .tick {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 4px;
-  height: 14px;
-  background: rgba(49, 81, 131, 0.6);
-  border-radius: 999px;
-  transform-origin: center calc(100% + 80px);
-}
-
-.clock-face .hand {
-  position: absolute;
-  bottom: 50%;
-  left: 50%;
-  transform-origin: center bottom;
-  border-radius: 999px;
-}
-
-.clock-face .hand.hour {
-  width: 8px;
-  height: 62px;
-  background: linear-gradient(180deg, #61b5ff, #2f7ee9);
-  margin-left: -4px;
-}
-
-.clock-face .hand.minute {
-  width: 5px;
-  height: 82px;
-  background: linear-gradient(180deg, #ff8a80, #f06b7a);
-  margin-left: -2.5px;
-}
-
-.clock-face .center {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--red);
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-}
-
-.clock-digital {
-  background: linear-gradient(135deg, #fff, #dff7ff);
-  border: 4px solid rgba(255, 255, 255, 0.8);
-  border-radius: 22px;
-  padding: 18px 20px;
-  font-size: clamp(1.5rem, 2vw, 2rem);
-  font-weight: 900;
-  color: var(--ink);
-  min-width: 150px;
-  text-align: center;
-}
-
-.position-board {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin: 18px 0 20px;
-}
-
-.position-scene {
-  position: relative;
-  width: min(100%, 420px);
-  height: 280px;
-  background: linear-gradient(180deg, rgba(187, 237, 255, 0.8), rgba(255, 255, 255, 0.8));
-  border-radius: 28px;
-  border: 4px dashed rgba(92, 152, 233, 0.66);
-  overflow: hidden;
-  margin-inline: auto;
-}
-
-.position-slot {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 18px;
-  border: 2px dashed rgba(73, 108, 181, 0.5);
-  background: rgba(255, 255, 255, 0.5);
-  font-weight: 800;
-  color: var(--ink);
-  font-size: 0.9rem;
-}
-
-.position-slot[data-slot="trên"] { top: 18px; left: 50%; transform: translateX(-50%); }
-.position-slot[data-slot="dưới"] { bottom: 18px; left: 50%; transform: translateX(-50%); }
-.position-slot[data-slot="trái"] { left: 18px; top: 50%; transform: translateY(-50%); }
-.position-slot[data-slot="phải"] { right: 18px; top: 50%; transform: translateY(-50%); }
-.position-slot[data-slot="trước"] { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.position-slot[data-slot="sau"] { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.position-slot[data-slot="trong"] { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.position-slot[data-slot="ngoài"] { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-
-.drag-item {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #fff, #ffcfe7);
-  border: 3px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 22px rgba(255, 94, 168, 0.16);
-  padding: 14px 18px;
-  color: var(--ink);
-  font-size: 2.3rem;
-  cursor: grab;
-}
-
-.drag-item:active {
-  cursor: grabbing;
-}
-
-.target-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-}
-
-.target-slot {
-  background: linear-gradient(135deg, #f0fbff, #e6ffe9);
-  border: 3px solid rgba(255,255,255,0.86);
-  color: var(--ink);
-  padding: 14px 18px;
-  min-width: 120px;
-  cursor: pointer;
-}
-
-.sequence-row {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin: 16px 0 10px;
-}
-
-.sequence-item {
-  width: 68px;
-  height: 68px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  font-weight: 900;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #fff, #e3f7ff);
-  border: 3px solid rgba(255, 255, 255, 0.8);
-  color: var(--ink);
-}
-
-.sequence-item.empty {
-  background: linear-gradient(135deg, #ffe8ad, #ffd576);
-}
-
-.quiz-input {
-  width: min(240px, 100%);
-  padding: 16px 18px;
-  border: 3px solid rgba(135, 223, 255, 0.8);
-  border-radius: 18px;
-  font-size: 1.2rem;
-  font-weight: 800;
-  text-align: center;
-  color: var(--ink);
-  background: rgba(255,255,255,0.9);
-}
-
-.result-banner {
-  position: relative;
-  z-index: 1;
-  margin-top: 18px;
-  padding: 16px 18px;
-  border-radius: 18px;
-  font-size: 1.1rem;
-  font-weight: 800;
-  text-align: center;
-}
-
-.result-banner.success {
-  background: rgba(122, 228, 170, 0.22);
-  color: #0a7b53;
-  border: 2px solid rgba(44, 197, 138, 0.5);
-}
-
-.result-banner.error {
-  background: rgba(255, 172, 172, 0.2);
-  color: #a23c3c;
-  border: 2px solid rgba(240, 86, 86, 0.5);
-}
-
-.narration-box {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin: 18px 0 12px;
-}
-
-.narration-box .big-number {
-  font-size: clamp(2.2rem, 4vw, 3.4rem);
-  font-weight: 900;
-  color: var(--ink);
-  background: linear-gradient(135deg, #fff7bf, #ffd56a);
-  border-radius: 22px;
-  padding: 18px 26px;
-  border: 3px solid rgba(255,255,255,0.8);
-}
-
-.mini-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
-  background: linear-gradient(135deg, #fff, #dff8ff);
-  box-shadow: 0 12px 20px rgba(77, 120, 177, 0.12);
-  font-size: 2rem;
-  border: none;
-  cursor: pointer;
-}
-
-@keyframes floatUp {
-  0%, 100% {
-    transform: translateY(0);
+const GAME_DEFINITIONS = [
+  { id: 'counting', label: 'Đếm số' },
+  { id: 'clock', label: 'Xem giờ' },
+  { id: 'position', label: 'Kéo thả' },
+  { id: 'missing', label: 'Thiếu số' },
+  { id: 'listen', label: 'Đọc số' },
+  { id: 'quantity', label: 'Số lượng' }
+];
+
+const state = {
+  currentGame: 'counting',
+  mode: 'easy',
+  score: 0,
+  problem: null,
+  hasAnswered: false,
+  soundEnabled: true
+};
+
+const rangeForMode = {
+  easy: { min: 0, max: 10 },
+  hard: { min: 10, max: 20 }
+};
+
+const icons = ['🍎', '🍉', '🍋', '🍓', '🍇', '🍒', '🍊', '🍏', '🥕', '🌼', '🐝', '🐶', '🐱', '🐰', '🦊', '🐸', '🍀', '🌞', '⚽', '🎈', '🧁', '🍪'];
+const positionSlots = [
+  { key: 'trên', label: 'Trên' },
+  { key: 'dưới', label: 'Dưới' },
+  { key: 'trong', label: 'Trong' },
+  { key: 'ngoài', label: 'Ngoài' },
+  { key: 'trái', label: 'Trái' },
+  { key: 'phải', label: 'Phải' },
+  { key: 'trước', label: 'Trước' },
+  { key: 'sau', label: 'Sau' }
+];
+
+const numberWords = {
+  0: 'không',
+  1: 'một',
+  2: 'hai',
+  3: 'ba',
+  4: 'bốn',
+  5: 'năm',
+  6: 'sáu',
+  7: 'bảy',
+  8: 'tám',
+  9: 'chín',
+  10: 'mười',
+  11: 'mười một',
+  12: 'mười hai',
+  13: 'mười ba',
+  14: 'mười bốn',
+  15: 'mười năm',
+  16: 'mười sáu',
+  17: 'mười bảy',
+  18: 'mười tám',
+  19: 'mười chín',
+  20: 'hai mươi'
+};
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shuffle(items) {
+  const array = [...items];
+  for (let i = array.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
-  50% {
-    transform: translateY(-6px);
-  }
+  return array;
 }
 
-@media (max-width: 720px) {
-  .app-shell {
-    width: min(100% - 18px, 1200px);
-    margin-top: 14px;
+function rangeForCurrentMode() {
+  return rangeForMode[state.mode];
+}
+
+function updateScore() {
+  const scoreValue = document.getElementById('scoreValue');
+  if (scoreValue) scoreValue.textContent = state.score;
+}
+
+function speak(text) {
+  if (!state.soundEnabled || !('speechSynthesis' in window)) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'vi-VN';
+  utter.rate = 0.96;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
+}
+
+function speakNumber(number) {
+  const spokenText = `Số ${number}. ${numberWords[number] || number}.`;
+  speak(spokenText);
+}
+
+function renderGameNav() {
+  const nav = document.getElementById('gameNav');
+  if (!nav) return;
+
+  nav.innerHTML = GAME_DEFINITIONS.map(
+    (game) => `
+      <button type="button" data-game="${game.id}" class="${state.currentGame === game.id ? 'active' : ''}">
+        ${game.label}
+      </button>
+    `
+  ).join('');
+
+  nav.querySelectorAll('button').forEach((button) => {
+    button.onclick = () => {
+      state.currentGame = button.dataset.game;
+      state.hasAnswered = false;
+      state.problem = null;
+      render();
+    };
+  });
+}
+
+function renderDifficultyButtons() {
+  document.querySelectorAll('.mode-btn').forEach((button) => {
+    button.classList.toggle('active', button.dataset.mode === state.mode);
+    button.onclick = () => {
+      state.mode = button.dataset.mode;
+      state.problem = null;
+      state.hasAnswered = false;
+      render();
+    };
+  });
+}
+
+function getGameTitle() {
+  const map = {
+    counting: 'Đếm đồ vật và phép toán',
+    clock: 'Xem giờ',
+    position: 'Kéo thả vị trí',
+    missing: 'Số còn thiếu',
+    listen: 'Đọc số',
+    quantity: 'Số lượng'
+  };
+  return map[state.currentGame] || 'Trò chơi';
+}
+
+function addResultBanner(message, isSuccess) {
+  const existing = document.querySelector('.result-banner');
+  if (existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.className = `result-banner ${isSuccess ? 'success' : 'error'}`;
+  banner.textContent = message;
+  document.getElementById('gameContent').appendChild(banner);
+}
+
+function awardPoints(amount) {
+  state.score += amount;
+  updateScore();
+}
+
+function reRenderCurrentGame() {
+  state.problem = null;
+  state.hasAnswered = false;
+  render();
+}
+
+function generateCountProblem() {
+  const { min, max } = rangeForCurrentMode();
+  const kindRoll = Math.random();
+  const object = icons[randomInt(0, icons.length - 1)];
+
+  if (kindRoll < 0.38) {
+    const count = randomInt(min, max);
+    const choices = shuffle([
+      count,
+      count < max ? count + 1 : count - 1,
+      Math.max(min, count - 2),
+      Math.min(max, count + 2)
+    ]).filter((value, idx, array) => array.indexOf(value) === idx);
+
+    return {
+      type: 'count',
+      question: 'Có bao nhiêu đồ vật?',
+      prompt: `Có bao nhiêu ${object} đây?`,
+      count,
+      objects: Array.from({ length: count }, (_, index) => ({ icon: object, key: `${object}-${index}` })),
+      choices: shuffle(choices).map((value) => ({ value, label: String(value) }))
+    };
   }
 
-  .topbar,
-  .game-panel {
-    padding: 16px 14px;
+  if (kindRoll < 0.7) {
+    const a = randomInt(min, Math.min(max, 9));
+    const b = randomInt(0, Math.max(0, max - a));
+    const total = a + b;
+    const wrongs = shuffle([
+      total,
+      Math.max(min, total - 2),
+      total + 2,
+      Math.max(min, total - 1)
+    ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4);
+
+    return {
+      type: 'sum',
+      question: 'Tính tổng số lượng',
+      prompt: `${a} + ${b} = ?`,
+      answer: total,
+      choices: wrongs
+    };
   }
 
-  .game-nav {
-    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  const left = randomInt(min, max);
+  const right = randomInt(min, max);
+  const bigger = left > right ? 'trái' : 'phải';
+  const answer = left === right ? 'bằng nhau' : bigger;
+
+  return {
+    type: 'compare',
+    question: 'Nhóm nào có nhiều hơn?',
+    prompt: 'Nhóm nào có nhiều hơn?',
+    leftCount: left,
+    rightCount: right,
+    answer,
+    choices: shuffle([
+      { value: 'trái', label: 'Nhóm trái' },
+      { value: 'phải', label: 'Nhóm phải' },
+      { value: 'bằng nhau', label: 'Bằng nhau' }
+    ])
+  };
+}
+
+function renderCountingGame() {
+  if (!state.problem || state.problem.type === undefined) {
+    state.problem = generateCountProblem();
   }
 
-  .game-title-group {
-    width: 100%;
+  const problem = state.problem;
+  let html = `
+    <div class="game-surface">
+      <div class="question-top">
+        <p class="prompt">${problem.prompt}</p>
+        <span class="badge">${state.mode === 'easy' ? 'Mức dễ 0–10' : 'Mức nâng cao 10–20'}</span>
+      </div>
+  `;
+
+  if (problem.type === 'count') {
+    html += `
+      <div class="object-row">
+        ${problem.objects.map((item) => `<div class="object-item">${item.icon}</div>`).join('')}
+      </div>
+      <div class="option-grid" style="margin-top: 20px;">
+        ${problem.choices.map((choice) => `
+          <button type="button" class="answer-btn" data-answer="${choice.value}" data-correct="${choice.value === problem.count}">
+            ${choice.label}
+          </button>
+        `).join('')}
+      </div>
+    `;
+  } else if (problem.type === 'sum') {
+    html += `
+      <div class="narration-box">
+        <div class="mini-icon">🧮</div>
+        <div class="big-number">${problem.prompt}</div>
+      </div>
+      <div class="option-grid" style="margin-top: 20px;">
+        ${problem.choices.map((value) => `
+          <button type="button" class="answer-btn" data-answer="${value}" data-correct="${value === problem.answer}">
+            ${value}
+          </button>
+        `).join('')}
+      </div>
+    `;
+  } else {
+    html += `
+      <div class="object-row" style="margin: 20px 0;">
+        <div class="object-item small">🐶</div>
+        <div class="object-item small">🐱</div>
+        <div class="object-item small">🐰</div>
+      </div>
+      <div class="group-choice">
+        ${problem.leftCount} trái • ${problem.rightCount} phải
+      </div>
+      <div class="option-grid" style="margin-top: 20px;">
+        ${problem.choices.map((choice) => `
+          <button type="button" class="answer-btn" data-answer="${choice.value}" data-correct="${choice.value === problem.answer}">
+            ${choice.label}
+          </button>
+        `).join('')}
+      </div>
+    `;
   }
 
-  .position-scene {
-    width: 100%;
-    height: 220px;
+  html += '</div>';
+  document.getElementById('gameContent').innerHTML = html;
+
+  document.querySelectorAll('.answer-btn').forEach((button) => {
+    button.onclick = () => {
+      const selected = button.dataset.answer;
+      const isCorrect = button.dataset.correct === 'true';
+      handleAnswer(isCorrect, selected, problem);
+    };
+  });
+}
+
+function generateClockProblem() {
+  const { min, max } = rangeForCurrentMode();
+  const hourStart = state.mode === 'easy' ? min : Math.max(10, min);
+  const hourEnd = state.mode === 'easy' ? Math.min(10, max) : Math.min(20, max);
+  const hour = randomInt(hourStart, hourEnd);
+  const minute = [0, 30][randomInt(0, 1)];
+  const answer = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  const options = new Set([answer]);
+
+  while (options.size < 4) {
+    const candidateHour = randomInt(hourStart, hourEnd);
+    const candidateMinute = [0, 30][randomInt(0, 1)];
+    const value = `${String(candidateHour).padStart(2, '0')}:${String(candidateMinute).padStart(2, '0')}`;
+    options.add(value);
   }
 
-  .object-item {
-    width: 64px;
-    height: 64px;
-    font-size: 1.9rem;
+  return {
+    hour,
+    minute,
+    answer,
+    options: shuffle([...options])
+  };
+}
+
+function renderClockGame() {
+  if (!state.problem || !state.problem.answer) {
+    state.problem = generateClockProblem();
   }
 
-  .clock-face {
-    width: 160px;
-    height: 160px;
+  const problem = state.problem;
+  const hourAngle = ((problem.hour % 12) * 30) + (problem.minute / 60) * 30;
+  const minuteAngle = problem.minute * 6;
+  const tickMarks = Array.from({ length: 12 }, (_, index) => {
+    const angle = (index / 12) * 360 - 90;
+    return `<span class="tick" style="transform: rotate(${angle}deg);"></span>`;
+  }).join('');
+
+  const html = `
+    <div class="game-surface">
+      <div class="question-top">
+        <p class="prompt">Đồng hồ đang chỉ mấy giờ?</p>
+        <span class="badge">${state.mode === 'easy' ? 'Mức dễ 0–10' : 'Mức nâng cao 10–20'}</span>
+      </div>
+
+      <div class="clock-wrap">
+        <div class="clock-face">
+          ${tickMarks}
+          <div class="hand hour" style="transform: rotate(${hourAngle}deg);"></div>
+          <div class="hand minute" style="transform: rotate(${minuteAngle}deg);"></div>
+          <div class="center"></div>
+        </div>
+        <div class="clock-digital">${String(problem.hour).padStart(2, '0')}:${String(problem.minute).padStart(2, '0')}</div>
+      </div>
+
+      <div class="clock-choice-grid">
+        ${problem.options.map((option) => `
+          <button type="button" class="answer-btn" data-answer="${option}" data-correct="${option === problem.answer}">
+            ${option}
+          </button>
+        `).join('')}
+      </div>
+
+      <div class="input-submit-row">
+        <input id="clockInput" class="quiz-input" type="text" inputmode="numeric" placeholder="Nhập giờ: 08:30" aria-label="Nhập giờ" />
+        <button type="button" class="submit-btn" id="clockCheckBtn">Kiểm tra</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('gameContent').innerHTML = html;
+
+  document.querySelectorAll('.answer-btn').forEach((button) => {
+    button.onclick = () => {
+      const selected = button.dataset.answer;
+      const isCorrect = button.dataset.correct === 'true';
+      handleAnswer(isCorrect, selected, problem);
+    };
+  });
+
+  const clockInput = document.getElementById('clockInput');
+  const clockCheckBtn = document.getElementById('clockCheckBtn');
+
+  clockCheckBtn.onclick = () => {
+    const value = normalizeClockInput(clockInput.value);
+    if (!value) {
+      addResultBanner('Hãy nhập giờ trước khi kiểm tra nhé! ⏰', false);
+      return;
+    }
+    const isCorrect = value === problem.answer;
+    handleAnswer(isCorrect, value, problem);
+  };
+}
+
+function normalizeClockInput(value) {
+  if (!value) return '';
+  const cleaned = value.replace(/\s+/g, '').replace(/[^\d:]/g, '');
+
+  if (!cleaned) return '';
+  if (cleaned.includes(':')) {
+    const [hourPart, minutePart] = cleaned.split(':');
+    const hour = Number(hourPart);
+    const minute = Number(minutePart || 0);
+    if (Number.isNaN(hour) || Number.isNaN(minute)) return '';
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  }
+
+  const digits = cleaned;
+  if (digits.length === 3) {
+    return `${digits.slice(0, 1).padStart(2, '0')}:${digits.slice(1)}`;
+  }
+  if (digits.length === 4) {
+    return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+  }
+  return '';
+}
+
+function generatePositionProblem() {
+  const item = ['🐶', '🐱', '🐰', '🦊', '🐼', '🧸', '🎈', '🍉'][randomInt(0, 7)];
+  const relation = positionSlots[randomInt(0, positionSlots.length - 1)].key;
+  return {
+    item,
+    relation,
+    prompt: `Kéo ${item} vào vị trí ${relation}`,
+    correctAnswer: relation
+  };
+}
+
+function renderPositionGame() {
+  if (!state.problem || !state.problem.correctAnswer) {
+    state.problem = generatePositionProblem();
+  }
+
+  const problem = state.problem;
+  const html = `
+    <div class="game-surface">
+      <div class="question-top">
+        <p class="prompt">${problem.prompt}</p>
+        <span class="badge">Kéo và thả</span>
+      </div>
+
+      <div class="position-board">
+        <div class="drag-item" draggable="true" aria-label="Kéo vật" data-item="${problem.item}">${problem.item}</div>
+      </div>
+
+      <div class="position-scene" id="positionScene">
+        ${positionSlots.map((slot) => `
+          <div class="position-slot" data-slot="${slot.key}" data-label="${slot.label}" aria-label="${slot.label}">${slot.label}</div>
+        `).join('')}
+      </div>
+
+      <div class="target-list" style="margin-top: 20px;">
+        ${positionSlots.map((slot) => `
+          <button type="button" class="target-slot" data-target="${slot.key}" data-answer="${slot.key}" data-correct="${slot.key === problem.correctAnswer}">${slot.label}</button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('gameContent').innerHTML = html;
+
+  const dragItem = document.querySelector('.drag-item');
+  const scene = document.getElementById('positionScene');
+  const slots = document.querySelectorAll('.position-slot');
+  const targetButtons = document.querySelectorAll('.target-slot');
+
+  const setDraggingStart = (clientX, clientY) => {
+    const rect = scene.getBoundingClientRect();
+    const itemRect = dragItem.getBoundingClientRect();
+    dragItem.dataset.dragX = String(clientX - itemRect.width / 2);
+    dragItem.dataset.dragY = String(clientY - itemRect.height / 2);
+    dragItem.style.position = 'absolute';
+    dragItem.style.left = `${Math.max(0, Math.min(clientX - rect.left - itemRect.width / 2, rect.width - itemRect.width))}px`;
+    dragItem.style.top = `${Math.max(0, Math.min(clientY - rect.top - itemRect.height / 2, rect.height - itemRect.height))}px`;
+    dragItem.classList.add('is-dragging');
+    dragItem.setPointerCapture?.(pointerEvent);
+  };
+
+  dragItem.addEventListener('dragstart', (event) => {
+    event.dataTransfer.setData('text/plain', problem.item);
+    event.dataTransfer.effectAllowed = 'move';
+  });
+
+  dragItem.addEventListener('pointerdown', (event) => {
+    if (window.innerWidth < 768) {
+      const rect = scene.getBoundingClientRect();
+      const x = event.clientX - rect.left - dragItem.offsetWidth / 2;
+      const y = event.clientY - rect.top - dragItem.offsetHeight / 2;
+      dragItem.style.left = `${Math.max(0, Math.min(x, rect.width - dragItem.offsetWidth))}px`;
+      dragItem.style.top = `${Math.max(0, Math.min(y, rect.height - dragItem.offsetHeight))}px`;
+      dragItem.classList.add('is-dragging');
+      dragItem.setPointerCapture?.(event.pointerId);
+    }
+  });
+
+  dragItem.addEventListener('pointermove', (event) => {
+    if (!dragItem.classList.contains('is-dragging')) return;
+    const rect = scene.getBoundingClientRect();
+    const x = event.clientX - rect.left - dragItem.offsetWidth / 2;
+    const y = event.clientY - rect.top - dragItem.offsetHeight / 2;
+    dragItem.style.left = `${Math.max(0, Math.min(x, rect.width - dragItem.offsetWidth))}px`;
+    dragItem.style.top = `${Math.max(0, Math.min(y, rect.height - dragItem.offsetHeight))}px`;
+  });
+
+  dragItem.addEventListener('pointerup', (event) => {
+    if (!dragItem.classList.contains('is-dragging')) return;
+    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.position-slot');
+    if (target) {
+      const selected = target.dataset.slot;
+      const isCorrect = selected === problem.correctAnswer;
+      handleAnswer(isCorrect, selected, problem);
+    } else {
+      dragItem.classList.remove('is-dragging');
+      dragItem.style.position = 'static';
+      dragItem.style.left = 'auto';
+      dragItem.style.top = 'auto';
+    }
+  });
+
+  slots.forEach((slot) => {
+    slot.addEventListener('dragover', (event) => event.preventDefault());
+    slot.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const selected = slot.dataset.slot;
+      const isCorrect = selected === problem.correctAnswer;
+      handleAnswer(isCorrect, selected, problem);
+    });
+  });
+
+  targetButtons.forEach((button) => {
+    button.onclick = () => {
+      const selected = button.dataset.target;
+      const isCorrect = selected === problem.correctAnswer;
+      handleAnswer(isCorrect, selected, problem);
+    };
+  });
+}
+
+function generateMissingProblem() {
+  const { min, max } = rangeForCurrentMode();
+  const start = randomInt(min, max - 2);
+  const missingPosition = randomInt(0, 2);
+  const values = [start, start + 1, start + 2, start + 3];
+  const missingValue = values[missingPosition];
+  values[missingPosition] = null;
+
+  return {
+    sequence: values,
+    missingValue,
+    prompt: `Số còn thiếu: ${values.map((value) => value === null ? '—' : value).join(', ')}`,
+    options: shuffle([
+      missingValue,
+      missingValue + 1,
+      Math.max(min, missingValue - 1),
+      Math.min(max, missingValue + 2)
+    ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4)
+  };
+}
+
+function renderMissingGame() {
+  if (!state.problem || !state.problem.missingValue) {
+    state.problem = generateMissingProblem();
+  }
+
+  const problem = state.problem;
+  const html = `
+    <div class="game-surface">
+      <div class="question-top">
+        <p class="prompt">Điền số còn thiếu</p>
+        <span class="badge">${state.mode === 'easy' ? 'Mức dễ 0–10' : 'Mức nâng cao 10–20'}</span>
+      </div>
+
+      <div class="sequence-row">
+        ${problem.sequence.map((value) => `
+          <div class="sequence-item ${value === null ? 'empty' : ''}">${value === null ? '—' : value}</div>
+        `).join('')}
+      </div>
+
+      <div class="option-grid" style="margin-top: 18px;">
+        ${problem.options.map((option) => `
+          <button type="button" class="answer-btn" data-answer="${option}" data-correct="${option === problem.missingValue}">
+            ${option}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('gameContent').innerHTML = html;
+
+  document.querySelectorAll('.answer-btn').forEach((button) => {
+    button.onclick = () => {
+      const selected = Number(button.dataset.answer);
+      const isCorrect = Number(button.dataset.answer) === problem.missingValue;
+      handleAnswer(isCorrect, selected, problem);
+    };
+  });
+}
+
+function generateListenProblem() {
+  const { min, max } = rangeForCurrentMode();
+  const number = randomInt(min, max);
+  return {
+    number,
+    prompt: `Số ${number}`,
+    options: shuffle([
+      number,
+      Math.max(min, number - 2),
+      Math.min(max, number + 2),
+      Math.max(min, number - 1)
+    ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4)
+  };
+}
+
+function renderListenGame() {
+  if (!state.problem || !state.problem.number) {
+    state.problem = generateListenProblem();
+  }
+
+  const problem = state.problem;
+  const html = `
+    <div class="game-surface">
+      <div class="question-top">
+        <p class="prompt">Nghe và chọn số đúng</p>
+        <span class="badge">${state.mode === 'easy' ? 'Mức dễ 0–10' : 'Mức nâng cao 10–20'}</span>
+      </div>
+
+      <div class="narration-box">
+        <button type="button" class="mini-icon" id="playVoiceBtn" aria-label="Nghe số">🔊</button>
+        <button type="button" class="small-btn" id="soundToggleBtn" aria-label="Bật/tắt âm thanh">
+          ${state.soundEnabled ? 'Âm thanh bật' : 'Âm thanh tắt'}
+        </button>
+        <button type="button" class="small-btn" id="replayVoiceBtn" aria-label="Nghe lại số">Nghe lại</button>
+      </div>
+
+      <div class="narration-box">
+        <div class="big-number">${problem.number}</div>
+      </div>
+
+      <div class="option-grid" style="margin-top: 18px;">
+        ${problem.options.map((option) => `
+          <button type="button" class="answer-btn" data-answer="${option}" data-correct="${option === problem.number}">
+            ${option}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('gameContent').innerHTML = html;
+
+  const playVoiceBtn = document.getElementById('playVoiceBtn');
+  const replayVoiceBtn = document.getElementById('replayVoiceBtn');
+  const soundToggleBtn = document.getElementById('soundToggleBtn');
+
+  const playNumber = () => speakNumber(problem.number);
+  playVoiceBtn.onclick = playNumber;
+  replayVoiceBtn.onclick = playNumber;
+  soundToggleBtn.onclick = () => {
+    state.soundEnabled = !state.soundEnabled;
+    soundToggleBtn.textContent = state.soundEnabled ? 'Âm thanh bật' : 'Âm thanh tắt';
+    if (state.soundEnabled) {
+      speakNumber(problem.number);
+    }
+  };
+
+  document.querySelectorAll('.answer-btn').forEach((button) => {
+    button.onclick = () => {
+      const selected = Number(button.dataset.answer);
+      const isCorrect = Number(button.dataset.answer) === problem.number;
+      handleAnswer(isCorrect, selected, problem);
+    };
+  });
+}
+
+function generateQuantityProblem() {
+  const { min, max } = rangeForCurrentMode();
+  const number = randomInt(min, max);
+  const object = icons[randomInt(0, icons.length - 1)];
+  const options = shuffle([
+    number,
+    Math.max(min, number - 2),
+    Math.min(max, number + 2),
+    Math.max(min, number - 1)
+  ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4);
+
+  return {
+    number,
+    object,
+    prompt: `Hãy chọn số lượng ${object} đúng bằng ${number}`,
+    options
+  };
+}
+
+function renderQuantityGame() {
+  if (!state.problem || !state.problem.number) {
+    state.problem = generateQuantityProblem();
+  }
+
+  const problem = state.problem;
+  const html = `
+    <div class="game-surface">
+      <div class="question-top">
+        <p class="prompt">${problem.prompt}</p>
+        <span class="badge">Đếm đúng</span>
+      </div>
+
+      <div class="narration-box">
+        <div class="big-number">${problem.number}</div>
+      </div>
+
+      <div class="object-row" style="margin-bottom: 18px;">
+        ${Array.from({ length: problem.number }, (_, index) => `<div class="object-item small">${problem.object}</div>`).join('')}
+      </div>
+
+      <div class="option-grid">
+        ${problem.options.map((option) => `
+          <button type="button" class="answer-btn" data-answer="${option}" data-correct="${option === problem.number}">
+            ${option}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('gameContent').innerHTML = html;
+
+  document.querySelectorAll('.answer-btn').forEach((button) => {
+    button.onclick = () => {
+      const selected = Number(button.dataset.answer);
+      const isCorrect = Number(button.dataset.answer) === problem.number;
+      handleAnswer(isCorrect, selected, problem);
+    };
+  });
+}
+
+function getCorrectAnswerText(problem) {
+  if (state.currentGame === 'counting') {
+    return problem.count ?? problem.answer ?? problem.missingValue ?? problem.number ?? 'đáp án đúng';
+  }
+  if (state.currentGame === 'clock') {
+    return problem.answer;
+  }
+  if (state.currentGame === 'position') {
+    return problem.correctAnswer;
+  }
+  if (state.currentGame === 'missing') {
+    return problem.missingValue;
+  }
+  if (state.currentGame === 'listen') {
+    return problem.number;
+  }
+  if (state.currentGame === 'quantity') {
+    return problem.number;
+  }
+  return 'đáp án đúng';
+}
+
+function handleAnswer(isCorrect, selected, problem) {
+  if (state.hasAnswered) return;
+  state.hasAnswered = true;
+
+  const buttons = document.querySelectorAll('.answer-btn, .target-slot');
+  buttons.forEach((button) => {
+    const buttonIsCorrect = button.dataset.correct === 'true';
+    if (buttonIsCorrect) {
+      button.classList.add('correct');
+    }
+    if (button.dataset.answer === String(selected) && !isCorrect) {
+      button.classList.add('wrong');
+    }
+  });
+
+  if (isCorrect) {
+    awardPoints(10);
+    addResultBanner('Tuyệt vời! Đáp án đúng! 👏', true);
+    speak('Đúng rồi! Chúc mừng bạn!');
+  } else {
+    addResultBanner(`Chưa đúng rồi. Đáp án là ${getCorrectAnswerText(problem)}. Cố gắng lần sau nhé! 🌟`, false);
+    speak(`Rất tiếc. Đáp án đúng là ${getCorrectAnswerText(problem)}.`);
+  }
+
+  const replayButton = document.createElement('button');
+  replayButton.type = 'button';
+  replayButton.className = 'action-btn';
+  replayButton.textContent = 'Chơi lại';
+  replayButton.style.marginTop = '16px';
+  replayButton.onclick = () => {
+    reRenderCurrentGame();
+  };
+  document.getElementById('gameContent').appendChild(replayButton);
+}
+
+function renderGameContent() {
+  const gameMap = {
+    counting: renderCountingGame,
+    clock: renderClockGame,
+    position: renderPositionGame,
+    missing: renderMissingGame,
+    listen: renderListenGame,
+    quantity: renderQuantityGame
+  };
+
+  const gameTitle = document.getElementById('gameTitle');
+  if (gameTitle) {
+    gameTitle.textContent = getGameTitle();
+  }
+
+  const renderer = gameMap[state.currentGame];
+  if (renderer) {
+    renderer();
   }
 }
 
-@media (max-width: 480px) {
-  .brand {
-    align-items: flex-start;
-  }
-
-  .brand-mark {
-    width: 56px;
-    height: 56px;
-    font-size: 1.2rem;
-  }
-
-  .game-nav {
-    grid-template-columns: 1fr;
-  }
-
-  .difficulty-switch {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .mode-btn {
-    flex: 1;
-  }
-
-  .answer-btn,
-  .choice-btn,
-  .target-slot,
-  .submit-btn {
-    min-width: 100px;
-    width: 100%;
-  }
+function render() {
+  renderGameNav();
+  renderDifficultyButtons();
+  renderGameContent();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+document.addEventListener('DOMContentLoaded', () => {
+  render();
+
+  const voiceBtn = document.getElementById('voiceBtn');
+  if (voiceBtn) {
+    voiceBtn.onclick = () => {
+      const guidance = {
+        counting: 'Bây giờ chúng ta cùng đếm số và làm phép tính. Hãy chọn đáp án đúng nhé.',
+        clock: 'Em hãy nhìn đồng hồ và chọn hoặc nhập giờ đúng.',
+        position: 'Kéo con vật vào đúng vị trí trên, dưới, trong, ngoài, trái, phải, trước hoặc sau.',
+        missing: 'Hãy tìm số còn thiếu trong dãy số.',
+        listen: 'Nghe và chọn số đúng.',
+        quantity: 'Hãy chọn đúng số lượng đồ vật tương ứng.'
+      };
+      speak(guidance[state.currentGame] || 'Chúng ta cùng học toán nhé!');
+    };
+  }
+});
+
+window.addEventListener('beforeunload', () => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+});
