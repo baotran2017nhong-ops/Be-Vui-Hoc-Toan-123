@@ -617,13 +617,6 @@ function renderListenGame() {
     </div>
   `;
   document.getElementById('gameContent').innerHTML = html;
-  const sayNumber = () => {
-    if (!state.soundEnabled || !('speechSynthesis' in window)) return;
-    
-
-  };
-  document.getElementById('replayVoiceBtn')?.addEventListener('click', sayNumber);
-  sayNumber();
   document.querySelectorAll('.quantity-picture-option').forEach((button) => {
     button.onclick = () => {
       const selected = Number(button.dataset.answer);
