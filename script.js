@@ -1,5 +1,5 @@
 const GAME_DEFINITIONS = [
-  { id: 'counting', label: 'Đếm số' },
+  { id: 'counting', label: 'Phép tính' },
   { id: 'clock', label: 'Xem giờ' },
   { id: 'position', label: 'Kéo thả' },
   { id: 'missing', label: 'Thiếu số' },
