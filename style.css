@@ -986,3 +986,13 @@ body {
  .quantity-picture-options { grid-template-columns:repeat(2,minmax(0,1fr)); }
  .quantity-picture-option { min-height:105px; }
 }
+
+.compare-groups{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:14px;align-items:center;margin:18px auto;max-width:900px}
+.compare-group-card{min-width:0;min-height:145px;padding:14px;border:3px solid #fff;border-radius:24px;background:linear-gradient(145deg,#fff,#e6f8ff);box-shadow:0 6px 0 rgba(63,152,199,.15)}
+.compare-group-card:nth-child(3){background:linear-gradient(145deg,#fff,#fff0bf)}
+.compare-group-title{text-align:center;font-size:1.8rem;margin-bottom:8px}
+.compare-object-grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:5px;font-size:clamp(1.4rem,3vw,2.4rem);line-height:1.15}
+.compare-vs{font-size:1.4rem}
+.compare-instruction{text-align:center;font-weight:900;color:#246aa7;font-size:clamp(1rem,2vw,1.25rem)}
+.compare-answer{font-size:2rem;min-height:75px}
+@media(max-width:520px){.compare-groups{gap:6px}.compare-group-card{padding:8px;min-height:120px}.compare-vs{font-size:1rem}.compare-object-grid{gap:2px}}
