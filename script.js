@@ -321,17 +321,18 @@ function renderCountingGame() {
 }
 
 function generateClockProblem() {
-  const { min, max } = rangeForCurrentMode();
-  const hourStart = state.mode === 'easy' ? min : Math.max(10, min);
-  const hourEnd = state.mode === 'easy' ? Math.min(10, max) : Math.min(20, max);
+  // Đồng hồ kim dùng hệ 12 giờ; mức Khó luyện thêm các mốc 15 phút.
+  const hourStart = 1;
+  const hourEnd = 12;
+  const minuteOptions = state.mode === 'easy' ? [0, 30] : [0, 15, 30, 45];
   const hour = randomInt(hourStart, hourEnd);
-  const minute = [0, 30][randomInt(0, 1)];
+  const minute = minuteOptions[randomInt(0, minuteOptions.length - 1)];
   const answer = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   const options = new Set([answer]);
 
   while (options.size < 4) {
     const candidateHour = randomInt(hourStart, hourEnd);
-    const candidateMinute = [0, 30][randomInt(0, 1)];
+    const candidateMinute = minuteOptions[randomInt(0, minuteOptions.length - 1)];
     const value = `${String(candidateHour).padStart(2, '0')}:${String(candidateMinute).padStart(2, '0')}`;
     options.add(value);
   }
@@ -361,7 +362,7 @@ function renderClockGame() {
     <div class="game-surface">
       <div class="question-top">
         <p class="prompt">Đồng hồ đang chỉ mấy giờ?</p>
-        <span class="badge">${state.mode === 'easy' ? 'Mức dễ 0–10' : 'Mức nâng cao 10–20'}</span>
+        <span class="badge">${state.mode === 'easy' ? 'Dễ: Giờ đúng, giờ rưỡi' : 'Khó: Xem giờ theo mốc 15 phút'}</span>
       </div>
 
       <div class="clock-wrap">
