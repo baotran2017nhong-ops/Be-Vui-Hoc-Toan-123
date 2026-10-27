@@ -631,47 +631,40 @@ function renderListenGame() {
 
 function generateQuantityProblem() {
   const { min, max } = rangeForCurrentMode();
-  const number = randomInt(min, max);
-  const object = icons[randomInt(0, icons.length - 1)];
-  const options = shuffle([
-    number,
-    Math.max(min, number - 2),
-    Math.min(max, number + 2),
-    Math.max(min, number - 1)
-  ]).filter((value, idx, array) => array.indexOf(value) === idx).slice(0, 4);
-
-  return {
-    number,
-    object,
-    prompt: `Hãy chọn số lượng ${object} đúng bằng ${number}`,
-    options
-  };
+  const number = randomInt(Math.max(1, min), Math.min(10, max));
+  const objectPool = ['🍎', '🍓', '🐱', '🐶', '🐰', '🦋', '🚗', '🌼', '⚽', '🧸', '🐟', '🍊'];
+  const object = objectPool[randomInt(0, objectPool.length - 1)];
+  const distractors = new Set([number]);
+  while (distractors.size < 4) {
+    let candidate = randomInt(1, Math.min(10, max));
+    if (candidate === number) candidate = candidate === 10 ? 1 : candidate + 1;
+    distractors.add(candidate);
+  }
+  return { number, object, options: shuffle([...distractors]) };
 }
 
 function renderQuantityGame() {
-  if (!state.problem || !state.problem.number) {
+  if (!state.problem || !state.problem.number || !state.problem.options) {
     state.problem = generateQuantityProblem();
   }
 
   const problem = state.problem;
+  const objectCount = problem.number;
   const html = `
     <div class="game-surface">
       <div class="question-top">
-        <p class="prompt">${problem.prompt}</p>
-        <span class="badge">Đếm đúng</span>
+        <p class="prompt">Con hãy đếm xem có bao nhiêu hình nhé!</p>
+        <span class="badge">👀 Quan sát và đếm</span>
       </div>
 
-      <div class="narration-box">
-        <div class="big-number">${problem.number}</div>
+      <div class="object-row quantity-counting-objects" style="margin: 18px 0 26px;">
+        ${Array.from({ length: objectCount }, (_, index) => `<div class="object-item small" aria-label="Đồ vật">${problem.object}</div>`).join('')}
       </div>
 
-      <div class="object-row" style="margin-bottom: 18px;">
-        ${Array.from({ length: problem.number }, (_, index) => `<div class="object-item small">${problem.object}</div>`).join('')}
-      </div>
-
+      <p class="visual-instruction">Có tất cả bao nhiêu?</p>
       <div class="option-grid">
         ${problem.options.map((option) => `
-          <button type="button" class="answer-btn" data-answer="${option}" data-correct="${option === problem.number}">
+          <button type="button" class="answer-btn" data-answer="${option}" data-correct="${option === problem.number}" aria-label="Chọn ${option}">
             ${option}
           </button>
         `).join('')}
@@ -680,12 +673,10 @@ function renderQuantityGame() {
   `;
 
   document.getElementById('gameContent').innerHTML = html;
-
   document.querySelectorAll('.answer-btn').forEach((button) => {
     button.onclick = () => {
       const selected = Number(button.dataset.answer);
-      const isCorrect = Number(button.dataset.answer) === problem.number;
-      handleAnswer(isCorrect, selected, problem);
+      handleAnswer(selected === problem.number, selected, problem);
     };
   });
 }
