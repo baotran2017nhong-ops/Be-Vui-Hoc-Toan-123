@@ -240,10 +240,10 @@ function generateCountProblem() {
     };
   }
 
-  const left = randomInt(min, max);
-  const right = randomInt(min, max);
-  const bigger = left > right ? 'trái' : 'phải';
-  const answer = left === right ? 'bằng nhau' : bigger;
+  const left = randomInt(Math.max(1, min), Math.max(2, max));
+  let right = randomInt(Math.max(1, min), Math.max(2, max));
+  if (Math.random() < 0.75 && right === left) right = left < max ? left + 1 : Math.max(1, left - 1);
+  const answer = left > right ? 'trái' : left < right ? 'phải' : 'bằng nhau';
 
   return {
     type: 'compare',
@@ -253,9 +253,9 @@ function generateCountProblem() {
     rightCount: right,
     answer,
     choices: shuffle([
-      { value: 'trái', label: 'Nhóm trái' },
-      { value: 'phải', label: 'Nhóm phải' },
-      { value: 'bằng nhau', label: 'Bằng nhau' }
+      { value: 'trái', label: '👈', aria: 'Nhóm bên trái' },
+      { value: 'phải', label: '👉', aria: 'Nhóm bên phải' },
+      { value: 'bằng nhau', label: '🤝', aria: 'Hai nhóm bằng nhau' }
     ])
   };
 }
@@ -303,17 +303,21 @@ function renderCountingGame() {
     `;
   } else {
     html += `
-      <div class="object-row" style="margin: 20px 0;">
-        <div class="object-item small">🐶</div>
-        <div class="object-item small">🐱</div>
-        <div class="object-item small">🐰</div>
+      <div class="compare-groups">
+        <div class="compare-group-card">
+          <div class="compare-group-title">👈</div>
+          <div class="compare-object-grid">${Array.from({length: problem.leftCount}, () => `<span>🐰</span>`).join('')}</div>
+        </div>
+        <div class="compare-vs">🆚</div>
+        <div class="compare-group-card">
+          <div class="compare-group-title">👉</div>
+          <div class="compare-object-grid">${Array.from({length: problem.rightCount}, () => `<span>🐻</span>`).join('')}</div>
+        </div>
       </div>
-      <div class="group-choice">
-        ${problem.leftCount} trái • ${problem.rightCount} phải
-      </div>
+      <p class="compare-instruction">🔢 Con hãy đếm hình rồi chọn nhóm nhiều hơn nhé!</p>
       <div class="option-grid" style="margin-top: 20px;">
         ${problem.choices.map((choice) => `
-          <button type="button" class="answer-btn" data-answer="${choice.value}" data-correct="${choice.value === problem.answer}">
+          <button type="button" class="answer-btn compare-answer" aria-label="${choice.aria}" title="${choice.aria}" data-answer="${choice.value}" data-correct="${choice.value === problem.answer}">
             ${choice.label}
           </button>
         `).join('')}
