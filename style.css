@@ -1206,3 +1206,5 @@ body {
   .game-card-description { min-height:0;font-size:.9rem; }
   .game-card-cta { padding-top:0; }
 }
+
+.game-panel.is-hidden { display:none; }
