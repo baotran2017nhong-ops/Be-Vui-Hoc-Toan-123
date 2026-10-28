@@ -3,7 +3,7 @@ const GAME_DEFINITIONS = [
   { id: 'clock', label: 'Xem giờ' },
   { id: 'position', label: 'Kéo thả' },
   { id: 'missing', label: 'Thiếu số' },
-  { id: 'listen', label: 'Đọc số' },
+  { id: 'listen', label: 'Nhìn số chọn hình' },
   { id: 'quantity', label: 'Số lượng' }
 ];
 
@@ -139,7 +139,7 @@ function renderGameNav() {
     clock: { icon: '🕒', title: 'Xem giờ', description: 'Bé làm quen với chiếc đồng hồ!' },
     position: { icon: '🧸', title: 'Vị trí', description: 'Khám phá trên, dưới, trong và ngoài!' },
     missing: { icon: '🔢', title: 'Tìm số còn thiếu', description: 'Tìm số còn thiếu trong dãy số!' },
-    listen: { icon: '🎵', title: 'Nghe số', description: 'Lắng nghe và chọn nhóm hình phù hợp!' },
+    listen: { icon: '🔢', title: 'Nhìn số chọn hình', description: 'Nhìn số và chọn nhóm hình tương ứng!' },
     quantity: { icon: '🍎', title: 'Đếm số lượng', description: 'Quan sát hình và đếm thật chính xác!' }
   };
 
@@ -188,7 +188,7 @@ function getGameTitle() {
     clock: 'Xem giờ',
     position: 'Kéo thả vị trí',
     missing: 'Số còn thiếu',
-    listen: 'Đọc số',
+    listen: 'Nhìn số chọn hình',
     quantity: 'Số lượng'
   };
   return map[state.currentGame] || 'Trò chơi';
@@ -744,7 +744,7 @@ function handleAnswer(isCorrect, selected, problem) {
   const replayButton = document.createElement('button');
   replayButton.type = 'button';
   replayButton.className = 'action-btn';
-  replayButton.textContent = 'Chơi lại';
+  replayButton.textContent = 'Tiếp tục';
   replayButton.style.marginTop = '16px';
   replayButton.onclick = () => {
     reRenderCurrentGame();
