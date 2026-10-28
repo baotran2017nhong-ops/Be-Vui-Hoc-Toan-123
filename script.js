@@ -134,13 +134,26 @@ function renderGameNav() {
   const nav = document.getElementById('gameNav');
   if (!nav) return;
 
-  nav.innerHTML = GAME_DEFINITIONS.map(
-    (game) => `
-      <button type="button" data-game="${game.id}" class="${state.currentGame === game.id ? 'active' : ''}">
-        ${game.label}
+  const gameCards = {
+    counting: { icon: '🧮', title: 'Phép tính', description: 'Cùng khám phá những phép tính thú vị!' },
+    clock: { icon: '🕒', title: 'Xem giờ', description: 'Bé làm quen với chiếc đồng hồ!' },
+    position: { icon: '🧸', title: 'Vị trí', description: 'Khám phá trên, dưới, trong và ngoài!' },
+    missing: { icon: '🔢', title: 'Tìm số còn thiếu', description: 'Tìm số còn thiếu trong dãy số!' },
+    listen: { icon: '🎵', title: 'Nghe số', description: 'Lắng nghe và chọn nhóm hình phù hợp!' },
+    quantity: { icon: '🍎', title: 'Đếm số lượng', description: 'Quan sát hình và đếm thật chính xác!' }
+  };
+
+  nav.innerHTML = GAME_DEFINITIONS.map((game) => {
+    const card = gameCards[game.id] || { icon: '⭐', title: game.label, description: 'Cùng học Toán thật vui!' };
+    return `
+      <button type="button" data-game="${game.id}" class="game-card ${state.currentGame === game.id ? 'active' : ''}">
+        <span class="game-card-picture" aria-hidden="true">${card.icon}</span>
+        <span class="game-card-title">${card.title}</span>
+        <span class="game-card-description">${card.description}</span>
+        <span class="game-card-cta">CHƠI NGAY <span aria-hidden="true">→</span></span>
       </button>
-    `
-  ).join('');
+    `;
+  }).join('');
 
   nav.querySelectorAll('button').forEach((button) => {
     button.onclick = () => {
