@@ -160,7 +160,12 @@ function renderGameNav() {
       state.currentGame = button.dataset.game;
       state.hasAnswered = false;
       state.problem = null;
+      const panel = document.querySelector('.game-panel');
+      if (panel) panel.classList.remove('is-hidden');
       render();
+      window.setTimeout(() => {
+        document.querySelector('.game-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 40);
     };
   });
 }
